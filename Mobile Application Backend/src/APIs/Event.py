@@ -1,14 +1,14 @@
 '''
-Created on Jul 19, 2013
+Created on Jul 23, 2013
 
 @author: jacobforster
 '''
 
+from google.appengine.ext import ndb
 from protorpc import messages
-from protorpc import message_types
 from protorpc import remote
+from protorpc import message_types
 from google.appengine.ext import endpoints
-
 
 #message for specifying a specific event already in the database
 class eventSpecifier(messages.Message):
@@ -23,9 +23,10 @@ class fullEventObject(messages.Message):
 class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
-@endpoints.api(name='eventServices', version='.01', description='API for all methods directly relating to the events object in the database', hostname='engaged-context-254.appspot.com')
+@endpoints.api(name='eventService', version='v0.0123', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
-    @endpoints.method(eventSpecifier, boolean, name='event.addEvent', path='addEvent', http_method='POST')
+    
+    @endpoints.method(eventSpecifier, boolean, name='Event.addEvent', path='addEvent', http_method='POST')
     def addEvent(self, request):
         pass
         #adds an existing event to a user's journal
@@ -34,8 +35,8 @@ class EventApi(remote.Service):
         #using the user reference key
         #if the date of the event is not transferred in the message then look up event date and add that to the event reference object, or just add date transmitted
         #returns a boolean value if added successfully or not
-    
-    @endpoints.method(fullEventObject, boolean, name='event.createEvent', path='createEvent', http_method='POST')
+        
+    @endpoints.method(fullEventObject, boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         pass
         #creates a new event based off the given parameters
@@ -43,17 +44,11 @@ class EventApi(remote.Service):
         #basically copies the event message containing all the information and creates a new event object with it
         #check what number the tags are in the user or add the new tags to the user property in the database
         #returns a boolean value if created successfully or not
-       
-    @endpoints.method(eventSpecifier, boolean, name='event.removeEvent', path='removeEvent', http_method='POST')   
+        
+    @endpoints.method(eventSpecifier, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         pass
         #removes an event from a users collection and possibly from the database if the event is personal or if it is public and no one has subscribed to it
         
         #DOES IT DELETE THE PICTURES AND EVERYTHING ASSOCIATED WITH IT?????
-        
-        
-        
-        
-        
-        
         
