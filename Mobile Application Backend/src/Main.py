@@ -14,7 +14,7 @@ from google.appengine.ext import endpoints
 from webapp2_extras import security
 from webapp2_extras import sessions
 from webapp2_extras import auth 
-from Classes import user
+from APIs.Classes import user
 
 #this allows python to search classes folder
 import os
@@ -63,7 +63,7 @@ class UserApi(remote.Service):
         
         
         #gets user data
-        user = user_data[1]
+        #user = user_data[1]
         
         """
         #gets user id to use in other api calls
