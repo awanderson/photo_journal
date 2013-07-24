@@ -5,8 +5,8 @@ Created on Jul 14, 2013
 '''
 from google.appengine.ext import endpoints
 
-from APIs import  User
-#import other_api
+from APIs import User
+from APIs import Event
 
 
-application = endpoints.api_server([User.UserApi], restricted=False)
+application = endpoints.api_server([Event.EventApi, User.UserApi], restricted=False)

@@ -79,5 +79,5 @@ class UserApi(remote.Service):
        
 
 
-app = endpoints.api_server([UserApi], restricted=False)
+#app = endpoints.api_server([UserApi], restricted=False)
 
