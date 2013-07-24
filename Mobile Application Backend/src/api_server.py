@@ -5,7 +5,7 @@ Created on Jul 14, 2013
 '''
 from google.appengine.ext import endpoints
 
-import User
+from APIs import  User
 #import other_api
 
 

@@ -6,10 +6,10 @@ threadsafe: true
 
 handlers:
 - url: /.*
-  script: Main.app
+  script: api_server.application
   
 - url: /_ah/spi/.*
-  script: Main.app
+  script: api_server.application
   
   
 libraries:
