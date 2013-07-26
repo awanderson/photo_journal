@@ -1,37 +1,39 @@
-import time
-import webapp2_extras.appengine.auth.models
-
 from google.appengine.ext import ndb
-
 from webapp2_extras import security
+from DatabaseObjects import user_db
+from webapp2_extras.appengine.auth import models
 
-class User(webapp2_extras.appengine.auth.models.User):
-  def set_password(self, raw_password):
-    """Sets the password for the current user
 
-    :param raw_password:
-        The raw password which will be hashed and stored
-    """
-    self.password = security.generate_password_hash(raw_password, length=12)
 
-  @classmethod
-  def get_by_auth_token(cls, user_id, token, subject='auth'):
-    """Returns a user object based on a user ID and token.
+class User():
+    
+    @staticmethod
+    def signUpUser(userName, email, raw_password, phone = None):
+        
+        
+        #inserts into db
+        unique_properties = ['email_address']
+        user_data = models.User.create_user(userName, unique_properties, password_raw = raw_password, email_address = email)
+        
+        #this means email/username is already registered, send back error message
+        if not user_data[0]:
+            error = [False,"User already exists in Database. Please use a different email and/or username", 10]
+            return error
+        
+        #gets user data if successful, variable can't be user, causes error
+        user_ob = user_data[1]
+        
+        #gets user id to use in other api calls
+        user_id = user_ob.get_id()
+        
+        #creates user token
+        return_data = [True, models.User.create_auth_token(user_id)]
+        
+        #returns id of user
+        return return_data
 
-    :param user_id:
-        The user_id of the requesting user.
-    :param token:
-        The token string to be verified.
-    :returns:
-        A tuple ``(User, timestamp)``, with a user object and
-        the token timestamp, or ``(None, None)`` if both were not found.
-    """
-    token_key = cls.token_model.get_key(user_id, subject, token)
-    user_key = ndb.Key(cls, user_id)
-    # Use get_multi() to save a RPC call.
-    valid_token, user = ndb.get_multi([token_key, user_key])
-    if valid_token and user:
-        timestamp = int(time.mktime(valid_token.created.timetuple()))
-        return user, timestamp
 
-    return None, None
+    @staticmethod
+    def loginUser(userName, raw_password):
+        
+        qry = User.query()
