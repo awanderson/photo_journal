@@ -95,3 +95,26 @@ class UserApi(remote.Service):
             return request
         """
         return request
+    
+    def getSettings(self, request):
+        pass
+        #returns an object with all user settings
+        
+    def setSettings(self, request):
+        pass
+    
+    def addFriend(self, request):
+        pass
+        #receives both user keys
+        #returns boolean if added to database
+        
+    def removeFriend(self):
+        pass
+        #receives both user keys
+        
+    def checkUserExist(self):
+        pass
+        #helper function to check each user - actually in the class
+    def checkUsersExist(self):
+        pass
+        #either json or infinite message recursion 

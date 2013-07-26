@@ -59,6 +59,10 @@ class EventApi(remote.Service):
         pass
     #gets all event from a tag
     
+    def getAllUserEvents(self, request):
+        pass
+    #recieves an optional parameter of how mny event objects to return
+    
     def replyToInvitation(self, request):
         pass
         #put zero or one to accept or reject
