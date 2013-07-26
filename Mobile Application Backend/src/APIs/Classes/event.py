@@ -19,5 +19,3 @@ class Event():
         #returns a boolean value if created successfully or not
         
         #removes an event from a users collection and possibly from the database if the event is personal or if it is public and no one has subscribed to it
-        
-        #DOES IT DELETE THE PICTURES AND EVERYTHING ASSOCIATED WITH IT?????

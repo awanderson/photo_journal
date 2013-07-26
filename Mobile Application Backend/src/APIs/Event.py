@@ -38,10 +38,44 @@ class EventApi(remote.Service):
         pass
         #creates a new event based off the given parameters
         
+        #
        
         
     @endpoints.method(eventSpecifier, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         pass
+        #removes an event from the users journal
+    
+    @endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
+    def getEvent(self, request):
+        pass
         
+    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
+    def getEventsFromRange(self, request):
+        pass
+        #to get a range of events from a user.. search the descendants
+        
+    def getEventsFromTag(self, request):
+        pass
+    #gets all event from a tag
+    
+    def replyToInvitation(self, request):
+        pass
+        #put zero or one to accept or reject
+        #send event and user reference
+        
+    def searchEvents(self, request):
+        pass
+    #passed the title and date
+    #search by date first
+    
+    def addTag(self, request):
+        pass
+        #passed the event key and tag index number and user key
+        
+    def removeTag(self, request):
+        pass
+        #same as the add tag
+        #only removes tags from events... if no more events with tag delete the tag from the user db
+        #cant remove the default tags
         
