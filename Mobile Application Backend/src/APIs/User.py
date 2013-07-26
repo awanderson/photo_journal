@@ -15,7 +15,7 @@ from webapp2_extras.auth import InvalidPasswordError
 #this is the actual object (message) that we will be transferring
 class userMessage(messages.Message):
     userName = messages.StringField(1, required=False)
-    password = messages.StringField(2, required=True)
+    password = messages.StringField(2, required=False)
     email = messages.StringField(3, required=False)
     userId = messages.IntegerField(4, required=False)
     authToken = messages.StringField(5, required=False)
@@ -32,7 +32,7 @@ class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
     #need a name for service, version number? and human readable description
-@endpoints.api(name='userService', version='v0.1916', description='API for User methods', hostname='engaged-context-254.appspot.com')  
+@endpoints.api(name='userService', version='v0.1920', description='API for User methods', hostname='engaged-context-254.appspot.com')  
 class UserApi(remote.Service):
     
     
@@ -76,14 +76,25 @@ class UserApi(remote.Service):
         
         #get auth token
         returnData = authTokenMessage(authToken = userData[1])
+        return returnData
         
+        
+    #logout method, simply deletes authtoken from backend
+    @endpoints.method(userMessage, boolean, name='User.logout', path='logout', http_method='POST')    
+    def LogoutUser(self,request):
+        
+        if (request.userName == "") or (request.authToken == ""):
+            returnData = boolean(booleanValue=False)
+            return returnData
+        
+        #calls method in user class, returns boolean if token was deleted
+        userData = user.User.logoutUser(request.userName, request.authToken)
+        
+        returnData = boolean(booleanValue=userData)
         return returnData
         
         
         
-        
-        pass
-    
     def getSettings(self, request):
         pass
         #returns an object with all user settings
