@@ -46,7 +46,6 @@ class EventApi(remote.Service):
         pass
         #removes an event from the users journal
     
-    @endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
     def getEvent(self, request):
         pass
         

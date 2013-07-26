@@ -13,88 +13,76 @@ from webapp2_extras.auth import InvalidPasswordError
 
 
 #this is the actual object (message) that we will be transferring
-class UserMessage(messages.Message):
-    username = messages.StringField(1, required=False)
+class userMessage(messages.Message):
+    userName = messages.StringField(1, required=False)
     password = messages.StringField(2, required=True)
     email = messages.StringField(3, required=False)
-    user_id = messages.IntegerField(4, required=False)
-    auth_token = messages.StringField(5, required=False)
-    error_message = messages.StringField(6, required=False)
-    error_number = messages.IntegerField(7, required=False)
+    userId = messages.IntegerField(4, required=False)
+    authToken = messages.StringField(5, required=False)
+    errorMessage = messages.StringField(6, required=False)
+    errorNumber = messages.IntegerField(7, required=False)
     
+
+class authTokenMessage(messages.Message):
+    authToken = messages.StringField(1, required=False)
+    errorMessage = messages.StringField(2, required=False)
+    errorNumber = messages.IntegerField(3, required=False)
     
+class boolean(messages.Message):
+    booleanValue = messages.BooleanField(1, required=True)
+
     #need a name for service, version number? and human readable description
 @endpoints.api(name='userService', version='v0.1916', description='API for User methods', hostname='engaged-context-254.appspot.com')  
 class UserApi(remote.Service):
     
     
     
-    
-    #this method signs the user up, pretty self explanatory
-    @endpoints.method(UserMessage, UserMessage, name='User.signup', path='signup', http_method='POST')
+    @endpoints.method(userMessage, authTokenMessage, name='User.signup', path='signup', http_method='POST')
     def SignupUser(self, request):
         
         #makes sure required fields aren't blank
-        if (request.username == "") or (request.password == "") or (request.email == ""):
+        if (request.userName == "") or (request.password == "") or (request.email == ""):
         
-            request.error_message = "Missing a required field"
-            request.error_number = 11
-            return request
+            returnData = authTokenMessage(errorMessage = "Missing a required field", errorNumber=11)
+            return returnData
         
-        #sets properties which have to be unique, otherwise won't create user
-        unique_properties = ['email_address']
+        #calls backend function, returns token of user
+        userData = user.User.signUpUser(request.userName, request.email, request.password)
         
-        username = request.username
-        password = request.password
-        email = request.email
+        if not userData[0]:
+            returnData = authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
+            return returnData
         
+        #get auth token
+        returnData = authTokenMessage(authToken = userData[1])
         
-        #actually creates the user, inserts into db
-        user_data = user.User.create_user(username, unique_properties, email_address = email, password_raw=password, user_name=username)
-        
-        #this means email is already registered, send back error message
-        if not user_data[0]:
-            request.error_message = "User already exists in Database. Please use a different email and/or username"
-            request.error_number = 10
-            return request
-        
-        #gets user data if successful, variable can't be user, causes error
-        user_ob = user_data[1]
-        
-        #gets user id to use in other api calls
-        request.user_id = user_ob.get_id()
-        
-        #creates user token
-        request.auth_token = user.User.create_auth_token(request.user_id)
-        
-        
-        return request
+        return returnData
     
     #login method using password and email/username
-    @endpoints.method(UserMessage, UserMessage, name='User.login', path='login', http_method='POST')
+    @endpoints.method(userMessage, authTokenMessage, name='User.login', path='login', http_method='POST')
     def LoginUser(self, request):
         
-        logging.getLogger().setLevel(logging.DEBUG)
+        #makes sure required fields aren't blank (can put either userName or email in userName field because frontend doesn't know which one user submitted
+        if (request.password == "") or (request.userName == ""):
+            returnData = authTokenMessage(errorMessage = "Missing a required field", errorNumber=11)
+            return returnData
         
-        #tries using email password combo first
-        username = request.username
-        password = request.password
-        try:
-            #auth_ob = auth.Auth(request)
-            user_ob = auth.Auth.get_user_by_password(username, password)
-            request.error_message = str(user_ob)
-        except (InvalidAuthIdError, InvalidPasswordError) as e:
-            logging.error("test")
-            request.error_message = "issue logging in user"
+        #calls user backend function, returns token of user
+        userData = user.User.loginUser(request.userName, request.password)
         
-        """
-        try:
-            
-        except (InvalidAuthIdError, InvalidPasswordError) as e:
-            #request.error_message = e;
-            return request
-        """
-        return request
+        if not userData[0]:
+            returnData = authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
+            return returnData
+        
+        #get auth token
+        returnData = authTokenMessage(authToken = userData[1])
+        
+        return returnData
+        
+        
+        
+        
+        pass
     
     def getSettings(self, request):
         pass
