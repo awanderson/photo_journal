@@ -1,6 +1,5 @@
 from google.appengine.ext import ndb
 from webapp2_extras import security
-from DatabaseObjects import user_db
 from webapp2_extras.appengine.auth import models
 import logging
 from webapp2_extras.auth import InvalidAuthIdError

@@ -27,7 +27,11 @@ class authTokenMessage(messages.Message):
     authToken = messages.StringField(1, required=False)
     errorMessage = messages.StringField(2, required=False)
     errorNumber = messages.IntegerField(3, required=False)
+
+class checkFriendsMessage(messages.Message):
+    authToken = messages.StringField(1, required=False)
     
+
 class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
