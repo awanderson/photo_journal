@@ -31,24 +31,17 @@ class EventApi(remote.Service):
         pass
         #adds an existing event to a user's journal
         
-        #takes the event key and the user key as input parameters and then adds an event reference object as a desendant of the user class that is defined
-        #using the user reference key
-        #if the date of the event is not transferred in the message then look up event date and add that to the event reference object, or just add date transmitted
-        #returns a boolean value if added successfully or not
+       
         
     @endpoints.method(fullEventObject, boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         pass
         #creates a new event based off the given parameters
         
-        #basically copies the event message containing all the information and creates a new event object with it
-        #check what number the tags are in the user or add the new tags to the user property in the database
-        #returns a boolean value if created successfully or not
+       
         
     @endpoints.method(eventSpecifier, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         pass
-        #removes an event from a users collection and possibly from the database if the event is personal or if it is public and no one has subscribed to it
         
-        #DOES IT DELETE THE PICTURES AND EVERYTHING ASSOCIATED WITH IT?????
         
