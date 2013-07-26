@@ -1,6 +1,7 @@
 '''
 Created on Jul 21, 2013
 
+# a change to something else
 @author: jacobforster
 '''
 
@@ -13,7 +14,7 @@ class Event():
         #if the date of the event is not transferred in the message then look up event date and add that to the event reference object, or just add date transmitted
         #returns a boolean value if added successfully or not
         
-         #basically copies the event message containing all the information and creates a new event object with it
+        #basically copies the event message containing all the information and creates a new event object with it
         #check what number the tags are in the user or add the new tags to the user property in the database
         #returns a boolean value if created successfully or not
         
