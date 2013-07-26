@@ -1,4 +1,5 @@
 from DatabaseObjects import event_db
+from google.appengine.ext import ndb
 
 class Event():
     
@@ -8,10 +9,12 @@ class Event():
     def addEventToUserJournal(self):
         pass
     
+    
+    @ndb.transactional
     def createNewEvent(self, name, description, location, startDate, endDate, privacySetting, creatorKey):
         
-        
-        
+        newEvent = event_db.EventDB(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, originalAuthor = creatorKey)
+        newEvent.put()
         
          #takes the event key and the user key as input parameters and then adds an event reference object as a desendant of the user class that is defined
         #using the user reference key

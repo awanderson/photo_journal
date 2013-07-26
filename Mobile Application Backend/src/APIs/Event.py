@@ -3,12 +3,13 @@ Created on Jul 23, 2013
 
 @author: jacobforster
 '''
-
 from google.appengine.ext import ndb
 from protorpc import messages
 from protorpc import remote
 from protorpc import message_types
 from google.appengine.ext import endpoints
+
+from Classes import event
 
 #message for specifying a specific event already in the database
 class EventSpecifier(messages.Message):
@@ -27,31 +28,38 @@ class FullEventObject(messages.Message):
     name = messages.StringField(1)
     startDate = message_types.DateTimeField(2)
     endDate = message_types.DateTimeField(3)
-    description = messages.StringField()
-    privacySetting = messages.EnumField('FullEventObject.PrivacySetting', 1, default='PRIVATE')
+    description = messages.StringField(4)
+    location = messages.StringField(5)
+    privacySetting = messages.EnumField('FullEventObject.PrivacySetting', 6, default='PRIVATE')
+    creatorKey = messages.StringField(7)
     
 class Boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
-@endpoints.api(name='eventService', version='v0.0123', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0124', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
-    #@endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
-    def addEvent(self, request):
-        pass
+    # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
+    # def addEvent(self, request):
+    #    pass
         #adds an existing event to a user's journal
         
        
         
     @endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
-        pass
-        #creates a new event based off the given parameters
+        transactionSucceeded = True
+        try:
+            event.Event().createNewEvent(FullEventObject.name, FullEventObject.description, FullEventObject.location, FullEventObject.startDate, FullEventObject.endDate, FullEventObject.privacySetting, FullEventObject.creatorKey)
+        except ndb.transactional().TransactionFailedError:
+            transactionSucceeded = False
+        Boolean.booleanValue = transactionSucceeded
+        return Boolean
         
         #
        
         
-   # @endpoints.method(EventSpecifier, Boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+    #  @endpoints.method(EventSpecifier, Boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         pass
         #removes an event from the users journal
