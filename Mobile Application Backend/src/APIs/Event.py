@@ -11,29 +11,39 @@ from protorpc import message_types
 from google.appengine.ext import endpoints
 
 #message for specifying a specific event already in the database
-class eventSpecifier(messages.Message):
+class EventSpecifier(messages.Message):
     eventKey = messages.StringField(1, required=True)
     userKey = messages.StringField(2, required=True)
     eventDate = message_types.DateTimeField(3, required=False)
 
 #message for createNewEvent method 
-class fullEventObject(messages.Message):
-    privacySetting = messages.IntegerField(1)
+class FullEventObject(messages.Message):
     
-class boolean(messages.Message):
+    class PrivacySetting(messages.Enum):
+        PRIVATE = 0
+        EXCLUSIVE = 1
+        PUBLIC = 2
+        
+    name = messages.StringField(1)
+    startDate = message_types.DateTimeField(2)
+    endDate = message_types.DateTimeField(3)
+    description = messages.StringField()
+    privacySetting = messages.EnumField('FullEventObject.PrivacySetting', 1, default='PRIVATE')
+    
+class Boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
 @endpoints.api(name='eventService', version='v0.0123', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
-    @endpoints.method(eventSpecifier, boolean, name='Event.addEvent', path='addEvent', http_method='POST')
+    #@endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
     def addEvent(self, request):
         pass
         #adds an existing event to a user's journal
         
        
         
-    @endpoints.method(fullEventObject, boolean, name='Event.createEvent', path='createEvent', http_method='POST')
+    @endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         pass
         #creates a new event based off the given parameters
@@ -41,12 +51,12 @@ class EventApi(remote.Service):
         #
        
         
-    @endpoints.method(eventSpecifier, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+   # @endpoints.method(EventSpecifier, Boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         pass
         #removes an event from the users journal
     
-    @endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
+    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
     def getEvent(self, request):
         pass
         

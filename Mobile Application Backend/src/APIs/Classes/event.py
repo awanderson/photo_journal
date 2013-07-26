@@ -1,13 +1,17 @@
-'''
-Created on Jul 21, 2013
-
-# a change to something else
-@author: jacobforster
-'''
+from DatabaseObjects import event_db
 
 class Event():
     
     def __init__(self):
+        pass
+    
+    def addEventToUserJournal(self):
+        pass
+    
+    def createNewEvent(self, name, description, location, startDate, endDate, privacySetting, creatorKey):
+        
+        
+        
         
          #takes the event key and the user key as input parameters and then adds an event reference object as a desendant of the user class that is defined
         #using the user reference key
