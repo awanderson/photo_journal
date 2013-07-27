@@ -26,8 +26,8 @@ class FullEventObject(messages.Message):
         PUBLIC = 2
         
     name = messages.StringField(1)
-    startDate = message_types.DateTimeField(2)
-    endDate = message_types.DateTimeField(3)
+    startDate = messages.StringField(2)
+    endDate = messages.StringField(3)
     description = messages.StringField(4)
     location = messages.StringField(5)
     privacySetting = messages.EnumField('FullEventObject.PrivacySetting', 6, default='PRIVATE')
@@ -46,7 +46,7 @@ class EventApi(remote.Service):
         
        
         
-    #@endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
+    @endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         transactionSucceeded = True
         try:
