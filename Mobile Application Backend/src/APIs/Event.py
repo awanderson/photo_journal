@@ -46,7 +46,7 @@ class EventApi(remote.Service):
         
        
         
-    @endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
+    #@endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         transactionSucceeded = True
         try:
