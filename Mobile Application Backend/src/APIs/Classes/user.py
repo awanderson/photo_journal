@@ -72,7 +72,17 @@ class User():
     #adds a friend to user object
     @classmethod
     def addFriend(cls, userKey, friendKey):
-        pass
+        #tests if user is already friend
+        testOb = ndb.query(models.User.friends == friendKey)
+        #Object returned, friend already existed, return 
+        if testOb != None:
+            return "Friend already exists"
+        
+        
+        userOb = ndb.key(userKey)
+        userOb.friends.append(friendKey)
+        userOb.put()
+        return "Friend didn't exist"
     
     #returns boolean to determine if user exists in DB and is logged in with token
     @classmethod     

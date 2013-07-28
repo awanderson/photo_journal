@@ -31,8 +31,10 @@ class checkFriendsMessage(messages.Message):
     authToken = messages.StringField(1, required=False)
     
 
-class boolean(messages.Message):
+class callResult(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
+    errorMessage = messages.StringField(2, required=False)
+    errorNumber = messages.IntegerField(3, required=False)
 
 
 class friendMessage(messages.Message):
@@ -53,7 +55,7 @@ class UserApi(remote.Service):
         #makes sure required fields aren't blank
         if (request.userName == "") or (request.password == "") or (request.email == ""):
         
-            returnData = authTokenMessage(errorMessage = "Missing a required field", errorNumber=11)
+            returnData = authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
             return returnData
         
         #calls backend function, returns token of user
@@ -74,7 +76,7 @@ class UserApi(remote.Service):
         
         #makes sure required fields aren't blank (can put either userName or email in userName field because frontend doesn't know which one user submitted
         if (request.password == "") or (request.userName == ""):
-            returnData = authTokenMessage(errorMessage = "Missing a required field", errorNumber=11)
+            returnData = authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
             return returnData
         
         #calls user backend function, returns token of user
@@ -90,17 +92,17 @@ class UserApi(remote.Service):
         
         
     #logout method, simply deletes authtoken from backend
-    @endpoints.method(userMessage, boolean, name='User.logout', path='logout', http_method='POST')    
+    @endpoints.method(userMessage, callResult, name='User.logout', path='logout', http_method='POST')    
     def logoutUser(self,request):
         
         if (request.userName == "") or (request.authToken == ""):
-            returnData = boolean(booleanValue=False)
+            returnData = authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
             return returnData
         
         #calls method in user class, returns boolean if token was deleted
         userData = user.User.logoutUser(request.userName, request.authToken)
         
-        returnData = boolean(booleanValue=userData)
+        returnData = callResult(booleanValue=userData)
         return returnData
         
         
@@ -114,24 +116,29 @@ class UserApi(remote.Service):
     
     
     #adds a friend to user
-    @endpoints.method(friendMessage, authTokenMessage, name='User.addFriend', path='addFriend', http_method='POST')
+    @endpoints.method(friendMessage, callResult, name='User.addFriend', path='addFriend', http_method='POST')
     def addFriend(self, request):
         
+        #checks for blank fields
+        if (request.friendKey == "") or (request.userName == "") or (request.authToken == ""):
+            returnData = callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return returnData
+        
+        #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            error = authTokenMessage(errorMessage = "User validation failed", 1)
-            return error
+            returnData = callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return returnData
         
-        
+        #calls function from user
         user.User.addFriend(userKey, request.friendKey)
         
-        
-        returnData = authTokenMessage(authToken = userKey)
+        #returns true
+        returnData = callResult(booleanValue = True)
         return returnData
         
-        
-        #receives both user keys
-        #returns boolean if added to database
+    #receives both user keys
+    #returns boolean if added to database
         
     def removeFriend(self):
         pass
