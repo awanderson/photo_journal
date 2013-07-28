@@ -12,31 +12,40 @@ from google.appengine.ext import endpoints
 from Classes import event
 
 #message for specifying a specific event already in the database
-class EventSpecifier(messages.Message):
+class eventKey(messages.Message):
     eventKey = messages.StringField(1, required=True)
-    userKey = messages.StringField(2, required=True)
-    eventDate = message_types.DateTimeField(3, required=False)
 
-#message for createNewEvent method 
-class FullEventObject(messages.Message):
+"""
+A full event object
+@param privacySetting: 3 input options, "PRIVATE" "EXCLUSIVE" "PUBLIC"
+"""
+class fullEventObject(messages.Message):
     
     class PrivacySetting(messages.Enum):
         PRIVATE = 0
         EXCLUSIVE = 1
         PUBLIC = 2
-        
-    name = messages.StringField(1)
-    startDate = messages.StringField(2)
-    endDate = messages.StringField(3)
-    description = messages.StringField(4)
-    location = messages.StringField(5)
-    privacySetting = messages.EnumField('FullEventObject.PrivacySetting', 6, default='PRIVATE')
-    creatorKey = messages.StringField(7)
     
-class Boolean(messages.Message):
+    name = messages.StringField(1, required = True)
+    startDate = messages.StringField(2, required = True)
+    endDate = messages.StringField(3, required = True)
+    description = messages.StringField(4, required = False)
+    location = messages.StringField(5, required = False)
+    privacySetting = messages.EnumField(PrivacySetting, 6, default = PrivacySetting.PRIVATE, required = False)
+    creatorId = messages.StringField(7, required = True)
+    eventId = messages.IntegerField(8, required = False)
+
+"""
+Used when returning events to the client application
+"""
+class returnEventObjects(messages.Message):       
+    #creates a list of event message objects to be returned
+    events = messages.MessageField(fullEventObject, 1, repeated=True)
+    
+class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
-@endpoints.api(name='eventService', version='v0.0124', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0131', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
@@ -45,23 +54,22 @@ class EventApi(remote.Service):
         #adds an existing event to a user's journal
         
        
-        
-    @endpoints.method(FullEventObject, Boolean, name='Event.createEvent', path='createEvent', http_method='POST')
+    """
+    Creates an event with the given parameters in the newEventObject message
+    """
+    @endpoints.method(fullEventObject, boolean, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         transactionSucceeded = True
-        try:
-            event.Event().createNewEvent(FullEventObject.name, FullEventObject.description, FullEventObject.location, FullEventObject.startDate, FullEventObject.endDate, FullEventObject.privacySetting, FullEventObject.creatorKey)
-        except ndb.transactional().TransactionFailedError:
-            transactionSucceeded = False
-        Boolean.booleanValue = transactionSucceeded
-        return Boolean
-        
-        #
+        event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting.number, request.creatorId)
+        succeedValue = boolean(booleanValue = transactionSucceeded)
+        return succeedValue
        
         
-    #  @endpoints.method(EventSpecifier, Boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+    @endpoints.method(eventKey, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
-        pass
+        transactionSucceeded = True
+        event.Event()
+        return boolean(booleanValue = transactionSucceeded)
         #removes an event from the users journal
     
     #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
@@ -80,6 +88,9 @@ class EventApi(remote.Service):
     def getAllUserEvents(self, request):
         pass
     #recieves an optional parameter of how mny event objects to return
+    
+    #has a message that has all not required properties of the event attributes
+    #use "if messageAttribute is not None" - described in protorpc library overview
     
     def replyToInvitation(self, request):
         pass

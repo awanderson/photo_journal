@@ -120,4 +120,4 @@ class UserApi(remote.Service):
         #helper function to check each user - actually in the class
     def checkUsersExist(self):
         pass
-        #either json or infinite message recursion 
+        #use a repeated message field... i think
