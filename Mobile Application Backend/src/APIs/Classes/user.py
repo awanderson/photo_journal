@@ -9,8 +9,8 @@ from webapp2_extras.auth import InvalidPasswordError
 
 class User():
     
-    @staticmethod
-    def signUpUser(userName, email, rawPassword, phone = None):
+    @classmethod
+    def signUpUser(cls, userName, email, rawPassword, phone = None):
         
         
         #inserts into db
@@ -42,8 +42,8 @@ class User():
         return returnData
 
 
-    @staticmethod
-    def loginUser(userName, rawPassword):
+    @classmethod
+    def loginUser(cls,userName, rawPassword):
         
         try:
             #logs in user, returns user object
@@ -59,27 +59,34 @@ class User():
             error = [False, "Issue Logging in. Please try again",12]
             return error
         
-    @staticmethod
-    def logoutUser(userName, authToken):
+    @classmethod
+    def logoutUser(cls, userName, authToken):
         
         #gets user object for id
         userOb = models.User.get_by_auth_id(userName)
         #actually deletes token
         userOb.delete_auth_token(userOb.key.id(), authToken)
+        
         return True
-       
+    
+    #adds a friend to user object
+    @classmethod
+    def addFriend(cls, userKey, friendKey):
+        pass
+    
     #returns boolean to determine if user exists in DB and is logged in with token
-    @staticmethod     
-    def validateUser(userName, authToken):    
+    @classmethod     
+    def validateUser(cls, userName, authToken):    
         
         #gets user object for id
         userOb = models.User.get_by_auth_id(userName)
         
-        #validates token, returns object if true, false if not
-        returnData = userOb.validate_token(userOb.key.id(), 'auth', authToken)
         
-        if returnData is not None:
-            return True
+        #validates token, returns object if true, false if not
+        userTokenOb = userOb.validate_token(userOb.key.id(), 'auth', authToken)
+        
+        if userTokenOb is not None:
+            return userOb.key.urlsafe()
         else:
             return False
         

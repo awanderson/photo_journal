@@ -17,7 +17,6 @@ class userMessage(messages.Message):
     userName = messages.StringField(1, required=False)
     password = messages.StringField(2, required=False)
     email = messages.StringField(3, required=False)
-    userId = messages.IntegerField(4, required=False)
     authToken = messages.StringField(5, required=False)
     errorMessage = messages.StringField(6, required=False)
     errorNumber = messages.IntegerField(7, required=False)
@@ -35,6 +34,13 @@ class checkFriendsMessage(messages.Message):
 class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
+
+class friendMessage(messages.Message):
+    userName = messages.StringField(1, required=True)
+    authToken = messages.StringField(2, required=True)
+    friendKey = messages.StringField(3, required=True)
+    
+    
     #need a name for service, version number? and human readable description
 @endpoints.api(name='userService', version='v0.1920', description='API for User methods', hostname='engaged-context-254.appspot.com')  
 class UserApi(remote.Service):
@@ -42,7 +48,7 @@ class UserApi(remote.Service):
     
     
     @endpoints.method(userMessage, authTokenMessage, name='User.signup', path='signup', http_method='POST')
-    def SignupUser(self, request):
+    def signupUser(self, request):
         
         #makes sure required fields aren't blank
         if (request.userName == "") or (request.password == "") or (request.email == ""):
@@ -64,7 +70,7 @@ class UserApi(remote.Service):
     
     #login method using password and email/username
     @endpoints.method(userMessage, authTokenMessage, name='User.login', path='login', http_method='POST')
-    def LoginUser(self, request):
+    def loginUser(self, request):
         
         #makes sure required fields aren't blank (can put either userName or email in userName field because frontend doesn't know which one user submitted
         if (request.password == "") or (request.userName == ""):
@@ -85,7 +91,7 @@ class UserApi(remote.Service):
         
     #logout method, simply deletes authtoken from backend
     @endpoints.method(userMessage, boolean, name='User.logout', path='logout', http_method='POST')    
-    def LogoutUser(self,request):
+    def logoutUser(self,request):
         
         if (request.userName == "") or (request.authToken == ""):
             returnData = boolean(booleanValue=False)
@@ -106,15 +112,34 @@ class UserApi(remote.Service):
     def setSettings(self, request):
         pass
     
+    
+    #adds a friend to user
+    @endpoints.method(friendMessage, authTokenMessage, name='User.addFriend', path='addFriend', http_method='POST')
     def addFriend(self, request):
-        pass
+        
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            error = authTokenMessage(errorMessage = "User validation failed", 1)
+            return error
+        
+        
+        user.User.addFriend(userKey, request.friendKey)
+        
+        
+        returnData = authTokenMessage(authToken = userKey)
+        return returnData
+        
+        
         #receives both user keys
         #returns boolean if added to database
         
     def removeFriend(self):
         pass
         #receives both user keys
-        
+    
+    def getFriends(self, request):
+        pass
+    
     def checkUserExist(self):
         pass
         #helper function to check each user - actually in the class
