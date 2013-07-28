@@ -73,10 +73,10 @@ class User():
     @classmethod
     def addFriend(cls, userKey, friendKey):
         #tests if user is already friend
-        testOb = ndb.query(models.User.friends == friendKey)
+        #testOb = ndb.query(models.User.friends == friendKey)
         #Object returned, friend already existed, return 
-        if testOb != None:
-            return "Friend already exists"
+        #if testOb != None:
+         #   return "Friend already exists"
         
         
         userOb = ndb.key(userKey)
@@ -91,6 +91,9 @@ class User():
         #gets user object for id
         userOb = models.User.get_by_auth_id(userName)
         
+        #no user with that userName
+        if not userOb:
+            return False
         
         #validates token, returns object if true, false if not
         userTokenOb = userOb.validate_token(userOb.key.id(), 'auth', authToken)
