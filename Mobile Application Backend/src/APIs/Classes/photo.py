@@ -1,12 +1,6 @@
-'''
-Created on Jul 25, 2013
-
-@author: jacobforster
-'''
-
 from google.appengine.ext import ndb
 
-class PhotoDB(ndb.Model):
+class Photo(ndb.Model):
     
     photo = ndb.BlobKeyProperty()
     dateAdded = ndb.DateTimeProperty()
@@ -16,5 +10,3 @@ class PhotoDB(ndb.Model):
     
     
     #NEED PHOTO BLOB OBJECT SOMEWHERE SOMEHOW
-    
-    

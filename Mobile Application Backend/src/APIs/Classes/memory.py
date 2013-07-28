@@ -1,6 +1,6 @@
 from google.appengine.ext import ndb
 
-class MemoryDB(ndb.Model):
+class Memory(ndb.Model):
     
     title = ndb.StringProperty(indexed = False)
     content = ndb.TextProperty()
