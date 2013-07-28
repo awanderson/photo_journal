@@ -10,6 +10,7 @@ class Event(ndb.Model):
     location = ndb.StringProperty(indexed=False)#just for the user, doesnt do anything fancy, just saves the text or something
     privacySetting = ndb.IntegerProperty(choices=[0, 1, 2]) #0 is default 0=private 1=exclusive 2=public
     creatorId = ndb.StringProperty()
+    createcd = ndb.DateTimeProperty(auto_now_add = True)
     
     def addEventToUserJournal(self):
         pass
@@ -38,8 +39,17 @@ class Event(ndb.Model):
         newEvent.put()
         
     @ndb.transactional
-    def removeEvent(self, eventId):
-        pass
+    def removeEventById(self, eventId):
+        
+        eventKey = ndb.Key('Event', eventId)
+        eventKey.delete()
+        
+    @ndb.transactional    
+    def getEventById(self, eventId):
+        
+        eventKey = ndb.Key('Event', eventId)
+        return eventKey.get()
+        
         
     """
     Converts a string of the form "MONTH DATE, YEAR" to a Python DateTime object.
@@ -50,16 +60,17 @@ class Event(ndb.Model):
         
         newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
         return newDateObject
+    
+    """
+    Converts the privacySetting integer from the database to the correct enum value to put in the event message object
+    @param integer: the integer from the database
+    """
+    def convertPrivacyIntegerToEnum(self, integer):
+        if integer == 0:
+            return "PRIVATE"
+        elif integer == 1:
+            return "EXCLUSIVE"
+        elif integer == 2:
+            return "PUBLIC"
         
         
-        
-         #takes the event key and the user key as input parameters and then adds an event reference object as a descendant of the user class that is defined
-        #using the user reference key
-        #if the date of the event is not transferred in the message then look up event date and add that to the event reference object, or just add date transmitted
-        #returns a boolean value if added successfully or not
-        
-        #basically copies the event message containing all the information and creates a new event object with it
-        #check what number the tags are in the user or add the new tags to the user property in the database
-        #returns a boolean value if created successfully or not
-        
-        #removes an event from a users collection and possibly from the database if the event is personal or if it is public and no one has subscribed to it

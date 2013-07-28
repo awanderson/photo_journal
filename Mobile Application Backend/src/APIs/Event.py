@@ -12,8 +12,8 @@ from google.appengine.ext import endpoints
 from Classes import event
 
 #message for specifying a specific event already in the database
-class eventKey(messages.Message):
-    eventKey = messages.StringField(1, required=True)
+class eventId(messages.Message):
+    eventId = messages.IntegerField(1, required=True)
 
 """
 A full event object
@@ -45,7 +45,7 @@ class returnEventObjects(messages.Message):
 class boolean(messages.Message):
     booleanValue = messages.BooleanField(1, required=True)
 
-@endpoints.api(name='eventService', version='v0.0131', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0141', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
@@ -64,17 +64,21 @@ class EventApi(remote.Service):
         succeedValue = boolean(booleanValue = transactionSucceeded)
         return succeedValue
        
-        
-    @endpoints.method(eventKey, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+    """
+    Removes an event from the database completely
+    """   
+    @endpoints.method(eventId, boolean, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         transactionSucceeded = True
-        event.Event()
+        event.Event().removeEventById(request.eventId)
         return boolean(booleanValue = transactionSucceeded)
         #removes an event from the users journal
     
-    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
+    @endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
     def getEvent(self, request):
-        pass
+        #transactionSucceeded = True
+        eventObject = event.Event().getEventById(request.eventId)
+        return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
         
     #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
     def getEventsFromRange(self, request):
