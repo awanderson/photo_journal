@@ -1,4 +1,5 @@
 from google.appengine.ext import ndb
+import user_event
 from datetime import datetime
 
 class Event(ndb.Model):
@@ -9,8 +10,8 @@ class Event(ndb.Model):
     description = ndb.StringProperty(indexed=False)
     location = ndb.StringProperty(indexed=False)#just for the user, doesnt do anything fancy, just saves the text or something
     privacySetting = ndb.IntegerProperty(choices=[0, 1, 2]) #0 is default 0=private 1=exclusive 2=public
-    creatorId = ndb.StringProperty()
-    createcd = ndb.DateTimeProperty(auto_now_add = True)
+    creatorKey = ndb.KeyProperty()
+    created = ndb.DateTimeProperty(auto_now_add = True)
     
     def addEventToUserJournal(self):
         pass
@@ -25,23 +26,26 @@ class Event(ndb.Model):
     @param privacySetting: an integer that determines if event is private (default 0), exclusive (1), or public (2)
     @param creatorKey: the key to the user object in the database that determines who the event belongs to
     """
-    @ndb.transactional
-    def createNewEvent(self, name, description, location, startDate, endDate, privacySetting, creatorId):
+    @classmethod
+    @ndb.transactional(xg=True)
+    def createNewEvent(cls, name, description, location, startDate, endDate, privacySetting, creatorKey):
         
-        startDate = self.convertStringToDate(startDate)
+        startDate = cls.convertStringToDate(startDate)
         
         if (endDate == startDate):
             endDate = startDate
         else:
-            endDate = self.convertStringToDate(endDate)
+            endDate = cls.convertStringToDate(endDate)
             
-        newEvent = Event(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, creatorId = creatorId)
-        newEvent.put()
+        newEvent = Event(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, creatorKey = ndb.Key(urlsafe = creatorKey) )
+        eventKey = newEvent.put()
+        user_event.UserEvent().addEventToUser(creatorKey, eventKey.urlsafe())
+        
         
     @ndb.transactional
-    def removeEventById(self, eventId):
+    def removeEventBykey(self, eventKey):
         
-        eventKey = ndb.Key('Event', eventId)
+        eventKey = ndb.Key('Event', eventKey)
         eventKey.delete()
         
     @ndb.transactional    
@@ -56,7 +60,8 @@ class Event(ndb.Model):
     @param inputDate: an input string of the format MONTH DATE, YEAR
     @return: a python DATETIME object corresponding to the input string
     """
-    def convertStringToDate(self, inputDate):
+    @classmethod
+    def convertStringToDate(cls, inputDate):
         
         newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
         return newDateObject
