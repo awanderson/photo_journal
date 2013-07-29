@@ -13,44 +13,23 @@ from Classes import event
 from Classes import user
 
 #message for specifying a specific event already in the database
-class eventId(messages.Message):
-    eventId = messages.IntegerField(1, required=True)
+class eventKey(messages.Message):
+    eventKey = messages.StringField(1, required=True)
 
 """
 A full event object
-@param privacySetting: 3 input options, "PRIVATE" "EXCLUSIVE" "PUBLIC"
 """
-class newEventObject(messages.Message):
-    
-    class PrivacySetting(messages.Enum):
-        PRIVATE = 0
-        EXCLUSIVE = 1
-        PUBLIC = 2
-    
+class fullEventObject(messages.Message):
+
     name = messages.StringField(1, required = True)
     startDate = messages.StringField(2, required = True)
     endDate = messages.StringField(3, required = True)
     description = messages.StringField(4, required = False)
     location = messages.StringField(5, required = False)
-    privacySetting = messages.EnumField(PrivacySetting, 6, default = PrivacySetting.PRIVATE, required = False)
+    privacySetting = messages.IntegerField(6, default = 0, required = False)
     authToken = messages.StringField(8, required = True)
     userName = messages.StringField(9, required = True)
-
-class fullEventObject(messages.Message):
-    
-    class PrivacySetting(messages.Enum):
-        PRIVATE = 0
-        EXCLUSIVE = 1
-        PUBLIC = 2
-    
-    name = messages.StringField(1, required = True)
-    startDate = messages.StringField(2, required = True)
-    endDate = messages.StringField(3, required = True)
-    description = messages.StringField(4, required = False)
-    location = messages.StringField(5, required = False)
-    privacySetting = messages.EnumField(PrivacySetting, 6, default = PrivacySetting.PRIVATE, required = False)
-    creatorId = messages.StringField(7, required = True)
-    eventId = messages.IntegerField(8, required = False)
+    eventKey = messages.StringField(10, required = False)
     
 """
 Used when returning events to the client application
@@ -65,7 +44,7 @@ class callResult(messages.Message):
     errorNumber = messages.IntegerField(3, required = False)
     
 
-@endpoints.api(name='eventService', version='v0.0143', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0144', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
@@ -77,7 +56,7 @@ class EventApi(remote.Service):
     """
     Creates an event with the given parameters in the newEventObject message
     """
-    @endpoints.method(newEventObject, callResult, name='Event.createEvent', path='createEvent', http_method='POST')
+    @endpoints.method(fullEventObject, callResult, name='Event.createEvent', path='createEvent', http_method='POST')
     def createEvent(self, request):
         
         #check if the user is validated
@@ -86,30 +65,35 @@ class EventApi(remote.Service):
             return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
         
         #Check if fields are blank
-        if request.name == "" or request.startDate == "" or request.endDate == "" or request.privacySetting.name == "":
+        if request.name == "" or request.startDate == "" or request.endDate == "":
             return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the event
-        event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting.number, userKey)
+        event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
         return callResult(booleanValue = True)
     
     """
-    Removes an event from the database completely
+    Dual Purpose Method
+    1. If Event is private, it deletes the event object and the user event objects from the database and any of the pictures associated with it, also does the tag stuff
+    2. If event is public or exclusive...
     """   
-    @endpoints.method(eventId, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+    #@endpoints.method(eventKey, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
+        #checks if private 
+        eventObject = ndb.Key(urlsafe=request.eventKey).get()
+        if eventObject.privacySetting == 0
+        
         transactionSucceeded = True
         event.Event().removeEventById(request.eventId)
         return callResult(booleanValue = transactionSucceeded)
-        #removes an event from the users journal
     
-    @endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
+    #@endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
     def getEvent(self, request):
         #transactionSucceeded = True
         eventObject = event.Event().getEventById(request.eventId)
-        return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
+       # return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
         
-    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.removeEvent', path='removeEvent', http_method='POST')
+    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.getEventsFromRange', path='removeEvent', http_method='POST')
     def getEventsFromRange(self, request):
         pass
         #to get a range of events from a user.. search the descendants
