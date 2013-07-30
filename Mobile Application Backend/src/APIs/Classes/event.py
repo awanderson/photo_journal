@@ -1,6 +1,7 @@
 from google.appengine.ext import ndb
 import user_event
-import tag
+import photo
+from webapp2_extras.appengine.auth import models
 from datetime import datetime
 
 
@@ -37,11 +38,33 @@ class Event(ndb.Model):
             
         newEvent = Event(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, creatorKey = ndb.Key(urlsafe = creatorKey) )
         eventKey = newEvent.put()
-        user_event.UserEvent().addEventToUser(creatorKey, eventKey.urlsafe())
+        user_event.UserEvent.addUserEvent(creatorKey, eventKey.urlsafe())
         
+    """
+    Completely removes an event that is private
+    """
+    @classmethod   
+    @ndb.transactional(xg=True)
+    def removePrivateEvent(cls, eventKey, userKey):
         
-    @ndb.transactional
-    def removeEventBykey(self, eventKey):
+        #removes the main event object
+        cls.removeEventBykey(eventKey)
+        
+        #deletes the user event object
+        user_event.UserEvent.removeUserEvent(eventKey, userKey)
+        
+        #deletes any photos corresponding to the event
+        
+        #deletes any memories related to the event
+        
+    
+    @classmethod
+    @ndb.transactional(xg=True)
+    def removeExclusiveEvent(cls, eventKey):
+        pass
+    
+    @classmethod
+    def removeEventBykey(cls, eventKey):
         
         eventKey = ndb.Key(urlsafe = eventKey)
         eventKey.delete()

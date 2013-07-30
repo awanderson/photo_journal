@@ -1,12 +1,6 @@
-'''
-Created on Jul 23, 2013
-
-@author: jacobforster
-'''
 from google.appengine.ext import ndb
 from protorpc import messages
 from protorpc import remote
-from protorpc import message_types
 from google.appengine.ext import endpoints
 
 from Classes import event
@@ -14,7 +8,10 @@ from Classes import user
 
 #message for specifying a specific event already in the database
 class eventKey(messages.Message):
-    eventKey = messages.StringField(1, required=True)
+    eventKey = messages.StringField(1, required = True)
+    userName = messages.StringField(2, required = True)
+    authToken = messages.StringField(3, required = True)
+    
 
 """
 A full event object
@@ -27,9 +24,10 @@ class fullEventObject(messages.Message):
     description = messages.StringField(4, required = False)
     location = messages.StringField(5, required = False)
     privacySetting = messages.IntegerField(6, default = 0, required = False)
-    authToken = messages.StringField(8, required = True)
-    userName = messages.StringField(9, required = True)
-    eventKey = messages.StringField(10, required = False)
+    eventKey = messages.StringField(8, required = False)
+    authToken = messages.StringField(9, required = True)
+    userName = messages.StringField(10, required = True)
+    
     
 """
 Used when returning events to the client application
@@ -70,10 +68,11 @@ class EventApi(remote.Service):
         
         #create the event
         try:
-            event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
+            event.Event.createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
         except ndb.transactional().TransactionFailedError:
-            return callResult(booleaValue = False)
-            
+            return callResult(booleaValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
+        
+        #everything works and database is written to
         return callResult(booleanValue = True)
     
     """
@@ -85,22 +84,35 @@ class EventApi(remote.Service):
     @endpoints.method(eventKey, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         
+        #checks if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+        
         #gets the event object from the database
         eventObject = ndb.Key(urlsafe=request.eventKey).get()
         
         #checks to see if the event is private
         if eventObject.privacySetting == 0:
-            event.Event().removeEventBykey(request.eventKey)
             
+            #remove the private event and all its corresponding objects in the database
+            try:
+                event.Event().removePrivateEvent(request.eventKey, userKey.urlsafe())
+            except ndb.transactional().TransactionFailedError:
+                return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
         
-        transactionSucceeded = True
-        event.Event().removeEventById(request.eventId)
-        return callResult(booleanValue = transactionSucceeded)
+        #checks to see if the event is exclusive
+        elif eventObject.privacySetting == 1:
+            pass
+            
+            #removes the exclusive event from the user who requested it
+     
+
     
     #@endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
-    def getEvent(self, request):
+    #def getEvent(self, request):
         #transactionSucceeded = True
-        eventObject = event.Event().getEventById(request.eventId)
+       # eventObject = event.Event().getEventById(request.eventId)
        # return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
         
     #@endpoints.method(eventSpecifier, fullEventObject, name='Event.getEventsFromRange', path='removeEvent', http_method='POST')
