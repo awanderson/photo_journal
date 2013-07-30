@@ -69,19 +69,29 @@ class EventApi(remote.Service):
             return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the event
-        event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
+        try:
+            event.Event().createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
+        except ndb.transactional().TransactionFailedError:
+            return callResult(booleaValue = False)
+            
         return callResult(booleanValue = True)
     
     """
     Dual Purpose Method
     1. If Event is private, it deletes the event object and the user event objects from the database and any of the pictures associated with it, also does the tag stuff
     2. If event is public or exclusive...
+    Doesnt actually delete the user event objects from the database? Those get deleted in the get events method?
     """   
-    #@endpoints.method(eventKey, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
+    @endpoints.method(eventKey, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
-        #checks if private 
+        
+        #gets the event object from the database
         eventObject = ndb.Key(urlsafe=request.eventKey).get()
-        if eventObject.privacySetting == 0
+        
+        #checks to see if the event is private
+        if eventObject.privacySetting == 0:
+            event.Event().removeEventBykey(request.eventKey)
+            
         
         transactionSucceeded = True
         event.Event().removeEventById(request.eventId)

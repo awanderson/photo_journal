@@ -43,7 +43,7 @@ class Event(ndb.Model):
     @ndb.transactional
     def removeEventBykey(self, eventKey):
         
-        eventKey = ndb.Key('Event', eventKey)
+        eventKey = ndb.Key(urlsafe = eventKey)
         eventKey.delete()
         
     @ndb.transactional    
