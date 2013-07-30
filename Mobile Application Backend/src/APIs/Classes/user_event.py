@@ -23,7 +23,7 @@ class UserEvent(ndb.Model):
     def removeUserEvent(cls, eventKey, userKey):
         
         #queries for the userEvent object that is an ancestor of the user with the journal and has a reference to the event they want deleted
-        userEventObject = cls.query(ancestor = ndb.Key(urlsafe=userKey), cls.eventKey == ndb.Key(urlsafe=eventKey))
+        userEventObject = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.eventKey == ndb.Key(urlsafe=eventKey))
         
         #deletes the user event
         userEventObject.Key.delete()
