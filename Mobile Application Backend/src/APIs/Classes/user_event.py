@@ -17,7 +17,7 @@ class UserEvent(ndb.Model):
         userEventObject.put()
     
     """
-    deletes an event from a user's journal
+    deletes an event from a user's journal - not checked if working
     """
     @classmethod
     def removeUserEvent(cls, eventKey, userKey):

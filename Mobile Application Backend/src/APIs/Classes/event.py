@@ -41,7 +41,7 @@ class Event(ndb.Model):
         user_event.UserEvent.addUserEvent(creatorKey, eventKey.urlsafe())
         
     """
-    Completely removes an event that is private
+    Completely removes an event that is private - not complete
     """
     @classmethod   
     @ndb.transactional(xg=True)
