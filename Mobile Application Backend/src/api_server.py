@@ -5,7 +5,10 @@ Created on Jul 14, 2013
 '''
 from google.appengine.ext import endpoints
 
-from APIs import User, Event, Memory, Photo
+from APIs import User
+from APIs import Event
+from APIs import Memory
+from APIs import Tag
 
 
-application = endpoints.api_server([Event.EventApi, User.UserApi, Memory.MemoryApi, Photo.PhotoApi], restricted=False)
+application = endpoints.api_server([Event.EventApi, User.UserApi, Memory.MemoryApi, Tag.TagApi], restricted=False)
