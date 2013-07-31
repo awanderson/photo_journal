@@ -7,7 +7,7 @@ from Classes import user
 from Classes import tag
 
 
-
+#main message for class
 class tagMessage(messages.Message):
     tagName = messages.StringField(1, required=True)
     eventKey = messages.StringField(2, required=True)
