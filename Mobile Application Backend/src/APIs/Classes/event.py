@@ -38,7 +38,7 @@ class Event(ndb.Model):
             
         newEvent = Event(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, creatorKey = ndb.Key(urlsafe = creatorKey) )
         eventKey = newEvent.put()
-        user_event.UserEvent.addUserEvent(creatorKey, eventKey.urlsafe())
+        user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
     """
     Completely removes an event that is private - not complete
