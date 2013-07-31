@@ -3,7 +3,7 @@ from google.appengine.ext import ndb
 class Photo(ndb.Model):
     
     photo = ndb.BlobKeyProperty()
-    dateAdded = ndb.DateTimeProperty()
+    dateAdded = ndb.DateTimeProperty(auto_now_add = True)
     eventKey = ndb.KeyProperty()#event added to
     userKey = ndb.KeyProperty()#user who uploaded photo
     privacySetting = ndb.IntegerProperty(choices = [0, 1, 2])

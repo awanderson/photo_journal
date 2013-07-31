@@ -42,7 +42,7 @@ class callResult(messages.Message):
     errorNumber = messages.IntegerField(3, required = False)
     
 
-@endpoints.api(name='eventService', version='v0.0144', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0145', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')

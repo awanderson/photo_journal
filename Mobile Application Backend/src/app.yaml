@@ -13,6 +13,10 @@ handlers:
   script: api_server.application
   secure: always
   
+- url: /process_upload
+  script: process_image_blobstore.py
+  secure: always
+  
 libraries:
 - name: webapp2
   version: "2.5.1"
