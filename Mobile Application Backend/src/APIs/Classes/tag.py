@@ -33,23 +33,26 @@ class Tag(ndb.Model):
     
     @classmethod
     def addTagToEvent(cls, eventKey, userKey, tagName):
+        
+        """need to modify tagName here first (capitalize first letter, etc.)"""
+        
+        tagOb = None
+        
         #tries finding existing tag
-        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch(
-                                                                                                   )
+        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch()
         for tagOb in tagObList:
             tagOb = tagOb
             
         #create new tag if tag doesn't exists
-        if not tagOb:
+        if tagOb is None:
             tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName)
             tagOb.put()
-            logging.info("Created new tag")
         
         
         tagKey = tagOb.key.urlsafe()
         
         #adds tag to userEvent
-        user_event.UserEvent.addTagObToEvent(eventKey, userKey, tagKey)
+        return user_event.UserEvent.addTagObToEvent(eventKey, userKey, tagKey)
         
     
     """
@@ -57,4 +60,34 @@ class Tag(ndb.Model):
     """
     @classmethod
     def removeTagFromEvent(cls, eventKey, userKey, tagName):
-        pass
+        
+        """need to modify tagName here first (capitalize first letter, etc.)"""
+        tagOb = None
+        
+        #tries finding existing tag
+        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch()
+        for tagOb in tagObList:
+            tagOb = tagOb
+        
+        #no tag by tagName
+        if tagOb is None:
+            return False
+        
+        tagKey = tagOb.key.urlsafe()
+        
+        if not user_event.UserEvent.removeTagObFromEvent(eventKey, userKey, tagKey):
+            return False
+        
+        #checks to see if there are other events from same tag
+        eventKeyList = user_event.UserEvent.getAllEventsFromTagOb(userKey, tagKey)
+        
+        logging.info(len(eventKeyList))
+        
+        #if no other events, remove tag if it isn't permanent
+        if(len(eventKeyList) == 0 and (tagOb.permanent==False)):
+            logging.info('trying to delete')
+            logging.info(tagOb)
+            tagOb.key.delete()
+            tagOb.put()
+        return True
+

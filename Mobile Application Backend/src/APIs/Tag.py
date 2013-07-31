@@ -40,9 +40,9 @@ class TagApi(remote.Service):
             return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
         
         
-        tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
+        returnBool = tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
         
-        return callResult(booleanValue = True)
+        return callResult(booleanValue = returnBool)
     
     @endpoints.method(tagMessage,callResult, name='Tag.removeTagFromEvent', path='removeTagFromEvent', http_method='POST')
     def removeTagFromEvent(self, request):
@@ -55,3 +55,8 @@ class TagApi(remote.Service):
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
             return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+        
+        returnBool = tag.Tag.removeTagFromEvent(request.eventKey, userKey, request.tagName)
+        
+        return callResult(booleanValue = returnBool)
+        

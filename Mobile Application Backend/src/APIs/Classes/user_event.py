@@ -17,32 +17,33 @@ class UserEvent(ndb.Model):
         userEventObject.put()
     
     """
-    deletes an event from a user's journal - not checked if working
+    deletes an event from a user's journal - not checked if working (modified, still haven't checked if working)
     """
     @classmethod
     def removeUserEvent(cls, eventKey, userKey):
         
-        #queries for the userEvent object that is an ancestor of the user with the journal and has a reference to the event they want deleted
-        userEventObject = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.eventKey == ndb.Key(urlsafe=eventKey))
+        #gets userEvent Object
+        userEventOb = cls.getUserEventObject(eventKey, userKey)
+        
+        if not userEventOb:
+            return False
         
         #deletes the user event
-        userEventObject.Key.delete()
-        
+        userEventOb.key.delete()
+        userEventOb.put()
+        return True
+    
+    
+    """
+    Adds a tag object to a specific user event object
+    """    
     @classmethod
     def addTagObToEvent(cls, eventKey, userKey, tagKey):
         
-        userEventOb = None
-        
         #gets userEvent Object
-        userEventObjectList = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.eventKey == ndb.Key(urlsafe=eventKey)).fetch()
-        logging.info(len(userEventObjectList))
+        userEventOb = cls.getUserEventObject(eventKey, userKey)
         
-        for userEventOb in userEventObjectList:
-            userEventOb = userEventOb
-        
-        
-        #can't find userEvent object
-        if userEventOb is None:
+        if not userEventOb:
             return False
         
         tagKeyOb = ndb.Key(urlsafe=tagKey)
@@ -53,20 +54,79 @@ class UserEvent(ndb.Model):
             logging.info('Tag already Exists')
             return True
         
-        #tries appending to existing list first
-        try:
-            logging.info('')
-            userEventOb.tagKey.append(tagKeyOb)
+        #Appends to tagKey list
+        userEventOb.tagKey.append(tagKeyOb)
         
         #no list, just set tagKey equal to single value
-        except:
-            userEventOb.tagKey = tagKeyOb
         
+        userEventOb.put()
         return True
             
         
-    
+    """
+    Removes a tag object from a specific user event object
+    """
     @classmethod
-    def removeTagObFromEvent(cls, eventKey, userKey, tagOb):
+    def removeTagObFromEvent(cls, eventKey, userKey, tagKey):
         
-        pass
+        #gets userEvent Object
+        userEventOb = cls.getUserEventObject(eventKey, userKey)
+        
+        if not userEventOb:
+            return False
+        
+        tagKeyOb = ndb.Key(urlsafe=tagKey)
+        
+        try:
+            userEventOb.tagKey = cls.remove_values_from_list(userEventOb.tagKey, tagKeyOb)
+            userEventOb.put()
+            
+        #user events has no tags, so can't remove tags
+        except:
+            return True
+        
+        return True
+    
+    """
+    Returns list of all events keys for a specific user and tag
+    """
+    @classmethod
+    def getAllEventsFromTagOb(cls, userKey, tagKey):
+        
+        #gets userEvent Object
+        userEventObjectList = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.tagKey == ndb.Key(urlsafe=tagKey)).fetch()
+        
+        eventKeyList = []
+        
+        #puts event key in new list
+        for userEventOb in userEventObjectList:
+            eventKeyList.append(userEventOb.eventKey)
+            
+            
+        return eventKeyList
+    
+    """
+    helper method to get user_event_object from event key and user key
+    """
+    @classmethod
+    def getUserEventObject(cls, eventKey, userKey):
+        userEventOb = None
+        
+        #gets userEvent Object
+        userEventObjectList = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.eventKey == ndb.Key(urlsafe=eventKey)).fetch()
+        
+        for userEventOb in userEventObjectList:
+            userEventOb = userEventOb
+        
+        #can't find userEvent object
+        if userEventOb is None:
+            return False
+        
+        return userEventOb
+        
+    """
+    helper method to remove item from list
+    """
+    @classmethod 
+    def remove_values_from_list(cls, the_list, val):
+        return [value for value in the_list if value != val]
