@@ -45,14 +45,17 @@ class UserEvent(ndb.Model):
         if userEventOb is None:
             return False
         
-        tagKeyOb = ndb.Key(urlsafe=userKey)
+        tagKeyOb = ndb.Key(urlsafe=tagKey)
+        
         
         #sees if tag is already in userevent
         if tagKeyOb in userEventOb.tagKey:
+            logging.info('Tag already Exists')
             return True
         
         #tries appending to existing list first
         try:
+            logging.info('')
             userEventOb.tagKey.append(tagKeyOb)
         
         #no list, just set tagKey equal to single value
