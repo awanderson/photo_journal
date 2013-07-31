@@ -8,6 +8,7 @@ from google.appengine.ext import endpoints
 from APIs import User
 from APIs import Event
 from APIs import Memory
+from APIs import Tag
 
 
-application = endpoints.api_server([Event.EventApi, User.UserApi, Memory.MemoryApi], restricted=False)
+application = endpoints.api_server([Event.EventApi, User.UserApi, Memory.MemoryApi, Tag.TagApi], restricted=False)

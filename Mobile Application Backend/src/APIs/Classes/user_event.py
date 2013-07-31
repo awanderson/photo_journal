@@ -1,5 +1,5 @@
 from google.appengine.ext import ndb
-    
+import logging
     
 class UserEvent(ndb.Model):
     eventKey = ndb.KeyProperty()
@@ -27,3 +27,43 @@ class UserEvent(ndb.Model):
         
         #deletes the user event
         userEventObject.Key.delete()
+        
+    @classmethod
+    def addTagObToEvent(cls, eventKey, userKey, tagKey):
+        
+        userEventOb = None
+        
+        #gets userEvent Object
+        userEventObjectList = cls.query(ancestor = ndb.Key(urlsafe=userKey)).filter(cls.eventKey == ndb.Key(urlsafe=eventKey)).fetch()
+        logging.info(len(userEventObjectList))
+        
+        for userEventOb in userEventObjectList:
+            userEventOb = userEventOb
+        
+        
+        #can't find userEvent object
+        if userEventOb is None:
+            return False
+        
+        tagKeyOb = ndb.Key(urlsafe=userKey)
+        
+        #sees if tag is already in userevent
+        if tagKeyOb in userEventOb.tagKey:
+            return True
+        
+        #tries appending to existing list first
+        try:
+            userEventOb.tagKey.append(tagKeyOb)
+        
+        #no list, just set tagKey equal to single value
+        except:
+            userEventOb.tagKey = tagKeyOb
+        
+        return True
+            
+        
+    
+    @classmethod
+    def removeTagObFromEvent(cls, eventKey, userKey, tagOb):
+        
+        pass

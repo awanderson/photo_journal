@@ -7,14 +7,13 @@ from webapp2_extras.auth import InvalidPasswordError
 import tag
 
 
-class User(ndb.Model):
+class User():
     
     
     """
     creates user and returns authToken
     """
     @classmethod
-    @ndb.transactional(xg=True)
     def signUpUser(cls, userName, email, rawPassword, phone = None):
         
         
@@ -24,7 +23,7 @@ class User(ndb.Model):
         
         #this means email/username is already registered, send back error message
         if not user_data[0]:
-            error = [False,"User already exists in Database. Please use a different email and/or username", 10]
+            error = [False,"User Is Already Registered", 12]
             return error
         
         #gets user id to use in other api calls
@@ -34,7 +33,7 @@ class User(ndb.Model):
         userOb = models.User.get_by_id(userId)
         
         #creates default tags
-        tag.Tag.createDefaultTags(userOb.key)
+        tag.Tag.createDefaultTags(userOb.key.urlsafe())
         
         #adds email as an auth id, needed later to login
         userOb.add_auth_id(email)
@@ -66,7 +65,7 @@ class User(ndb.Model):
             return returnData
             
         except (InvalidAuthIdError, InvalidPasswordError):
-            error = [False, "Issue Logging in. Please try again",12]
+            error = [False, "Invalid Username/Email And Password",13]
             return error
     
     """ 
@@ -212,7 +211,7 @@ class User(ndb.Model):
         email = userOb.email_address
         name = "Name goes here"
         
-        return [userName, email, name, str(friendKeyOb)]
+        return [userName, email, name, friendKeyOb.urlsafe()]
     
     """
     returns boolean to determine if user exists in DB and is logged in with token

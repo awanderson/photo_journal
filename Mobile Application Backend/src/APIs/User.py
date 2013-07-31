@@ -11,6 +11,8 @@ Error Messages
 
 10 => User Has No Friends
 11 => Could Not Find Friend
+12 => User Is Already Registered
+13 => Invalid Username/Email And Password
 """
 
 
@@ -89,10 +91,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #calls backend function, returns token of user
-        try:
-            userData = user.User.signUpUser(request.userName, request.email, request.password)
-        except ndb.transactional().TransactionFailedError:
-            return authTokenMessage(errorNumber = 3, errorMessage = "Database Transaction Failed")
+        userData = user.User.signUpUser(request.userName, request.email, request.password)
         
         if not userData[0]:
             return authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
@@ -111,10 +110,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #calls user backend function, returns token of user
-        try:
-            userData = user.User.loginUser(request.userName, request.password)
-        except ndb.transactional().TransactionFailedError:
-            return authTokenMessage(errorNumber = 3, errorMessage = "Database Transaction Failed")
+        userData = user.User.loginUser(request.userName, request.password)
         
         if not userData[0]:
             return authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
@@ -133,10 +129,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #calls method in user class, returns boolean if token was deleted
-        try:
-            userData = user.User.logoutUser(request.userName, request.authToken)
-        except ndb.transactional().TransactionFailedError:
-            return authTokenMessage(errorNumber = 3, errorMessage = "Database Transaction Failed")
+        userData = user.User.logoutUser(request.userName, request.authToken)
         
         return callResult(booleanValue=userData)
         
@@ -166,10 +159,7 @@ class UserApi(remote.Service):
             return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
-        try:
-            friendExists = user.User.addFriend(userKey, request.friendKey)
-        except ndb.transactional().TransactionFailedError:
-            return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
+        friendExists = user.User.addFriend(userKey, request.friendKey)
         
         #friend doesn't exists, alert frontend
         if not friendExists:
@@ -195,10 +185,7 @@ class UserApi(remote.Service):
             return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
-        try:
-            friendExists = user.User.addFriendFromUserName(userKey, request.friendUserName)
-        except ndb.transactional().TransactionFailedError:
-            return callResult(booleanValue=False,errorNumber = 3, errorMessage = "Database Transaction Failed")
+        friendExists = user.User.addFriendFromUserName(userKey, request.friendUserName)
             
     
         if not friendExists:
@@ -224,10 +211,7 @@ class UserApi(remote.Service):
             return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
-        try:
-            ndb.transaction(user.User.removeFriend(userKey, request.friendKey))
-        except ndb.transactional().TransactionFailedError:
-            return callResult(booleanValue=False,errorNumber = 3, errorMessage = "Database Transaction Failed")
+        ndb.transaction(user.User.removeFriend(userKey, request.friendKey))
         
         #returns true
         return callResult(booleanValue = True)

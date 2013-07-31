@@ -1,4 +1,7 @@
 from google.appengine.ext import ndb
+import logging
+import user_event
+
 
 class Tag(ndb.Model):
     
@@ -24,6 +27,34 @@ class Tag(ndb.Model):
         #puts the tags in the database
         ndb.put_multi([sportsTag, musicTag, nightLifeTag, holidaysTag, festivalTag])
     
+    """
+    Adds tag key to user event object given a string with the tags name
+    """
+    
     @classmethod
-    def addTagToEvent(cls, tagKey, eventKey):
+    def addTagToEvent(cls, eventKey, userKey, tagName):
+        #tries finding existing tag
+        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch(
+                                                                                                   )
+        for tagOb in tagObList:
+            tagOb = tagOb
+            
+        #create new tag if tag doesn't exists
+        if not tagOb:
+            tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName)
+            tagOb.put()
+            logging.info("Created new tag")
+        
+        
+        tagKey = tagOb.key.urlsafe()
+        
+        #adds tag to userEvent
+        user_event.UserEvent.addTagObToEvent(eventKey, userKey, tagKey)
+        
+    
+    """
+    Removes tag key from user event object given a string with the tags name
+    """
+    @classmethod
+    def removeTagFromEvent(cls, eventKey, userKey, tagName):
         pass
