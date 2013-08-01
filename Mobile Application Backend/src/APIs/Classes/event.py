@@ -74,7 +74,16 @@ class Event(ndb.Model):
         
         eventKey = ndb.Key('Event', eventId)
         return eventKey.get()
-        
+     
+    """
+    gets info for event given an event key object
+    """
+    @classmethod
+    def getEventInfo(cls, eventKeyOb):   
+       
+        eventOb = eventKeyOb.get()
+       
+        return[eventOb.name, eventOb.description, cls.convertDateToString(eventOb.startDate), cls.convertDateToString(eventOb.endDate), eventOb.privacySetting]
         
     """
     Converts a string of the form "MONTH DATE, YEAR" to a Python DateTime object.
@@ -87,5 +96,11 @@ class Event(ndb.Model):
         newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
         return newDateObject
 
+    """
+    Converts a date back to a string for get methods, returns format MONTH DATE, YEAR
+    """
+    @classmethod
+    def convertDateToString(cls, inputDate):
+        return inputDate.strftime('%B %d, %Y')
         
         

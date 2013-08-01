@@ -36,15 +36,10 @@ class Tag(ndb.Model):
         
         """need to modify tagName here first (capitalize first letter, etc.)"""
         
-        tagOb = None
-        
-        #tries finding existing tag
-        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch()
-        for tagOb in tagObList:
-            tagOb = tagOb
+        tagOb = cls.getTagObjectFromString(userKey, tagName)
             
         #create new tag if tag doesn't exists
-        if tagOb is None:
+        if not tagOb:
             tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName)
             tagOb.put()
         
@@ -62,15 +57,12 @@ class Tag(ndb.Model):
     def removeTagFromEvent(cls, eventKey, userKey, tagName):
         
         """need to modify tagName here first (capitalize first letter, etc.)"""
-        tagOb = None
+
         
-        #tries finding existing tag
-        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch()
-        for tagOb in tagObList:
-            tagOb = tagOb
+        tagOb = cls.getTagObjectFromString(userKey, tagName)
         
         #no tag by tagName
-        if tagOb is None:
+        if not tagOb:
             return False
         
         tagKey = tagOb.key.urlsafe()
@@ -91,3 +83,18 @@ class Tag(ndb.Model):
             tagOb.put()
         return True
 
+    @classmethod
+    def getTagObjectFromString(cls, userKey, tagName):
+        """need to modify tagName here first (capitalize first letter, etc.)"""
+        tagOb = None
+        
+        #tries finding existing tag
+        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).filter(cls.name == tagName).fetch()
+        for tagOb in tagObList:
+            tagOb = tagOb
+        
+        #no tag by tagName
+        if tagOb is None:
+            return False
+        
+        return tagOb

@@ -88,7 +88,7 @@ class UserEvent(ndb.Model):
         return True
     
     """
-    Returns list of all events keys for a specific user and tag
+    Returns list of all events keys strings for a specific user and tag
     """
     @classmethod
     def getAllEventsFromTagOb(cls, userKey, tagKey):
@@ -100,7 +100,7 @@ class UserEvent(ndb.Model):
         
         #puts event key in new list
         for userEventOb in userEventObjectList:
-            eventKeyList.append(userEventOb.eventKey)
+            eventKeyList.append(userEventOb.eventKey.urlsafe())
             
             
         return eventKeyList
