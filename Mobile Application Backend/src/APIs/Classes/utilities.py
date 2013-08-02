@@ -23,6 +23,14 @@ def convertDateToString(inputDate):
 
 
 """
+Converts a string to another string that's properly formated for search in format YEAR-MONTH-DATE all in decimals
+"""
+def convertStringToSearchDate(inputDate):
+    newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
+    return newDateObject.strftime('%Y-%m-%d')
+    
+    
+"""
 helper method that gets string and cleans it (capitalizes first letter of every word), reduces whitespace to a single space
 """
 def cleanString(string):
