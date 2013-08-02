@@ -7,6 +7,7 @@ from Classes import event
 from Classes import user
 from Classes import user_event
 from Classes import tag
+from Classes import search
 
 """
 
@@ -62,12 +63,16 @@ class callResult(messages.Message):
     booleanValue = messages.BooleanField(1, required = True)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
-    
+
+class searchMessage(messages.Message):
+    query = messages.StringField(1, required=True)
+    authToken = messages.StringField(2, required=True)
+    userName = messages.StringField(3, required=True)
 
 
 
 
-@endpoints.api(name='eventService', version='v0.0145', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.0150', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     # @endpoints.method(EventSpecifier, Boolean, name='Event.addEvent', path='addEvent', http_method='POST')
@@ -205,8 +210,38 @@ class EventApi(remote.Service):
         #put zero or one to accept or reject
         #send event and user reference
         
+    @endpoints.method(searchMessage, returnEventObjects, name='Events.searchEvents', path='searchEvents', http_method='POST')
     def searchEvents(self, request):
-        pass
+        
+        #checks for blank fields
+        if(request.userName=="") or (request.authToken=="") or (request.query == ""):
+            return returnEventObjects(errorMessage = "Missing Required Fields", errorNumber=2)  
+        
+        
+        #checks if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return returnEventObjects(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        eventKeyList = search.Search.queryEvents(request.query)
+        
+        #defines list variable to hold event info
+        eventInfoList = []
+        
+        for eventKey in eventKeyList:
+            
+            #gets event info from key
+            eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
+            #creates protorpc object
+            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
+            eventInfoList.append(fullEvent)
+            
+        return returnEventObjects(events = eventInfoList)
+        
+        
+        
+        
+        
     #passed the title and date
     #search by date first
     

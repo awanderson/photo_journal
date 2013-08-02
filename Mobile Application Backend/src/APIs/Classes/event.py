@@ -4,6 +4,7 @@ import photo
 from webapp2_extras.appengine.auth import models
 from datetime import datetime
 import utilities
+import search
 
 
 class Event(ndb.Model):
@@ -41,6 +42,11 @@ class Event(ndb.Model):
         eventKey = newEvent.put()
         user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
+        #adds search document
+        search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey)
+        
+        return True
+        
     """
     Completely removes an event that is private - not complete
     """
@@ -58,6 +64,7 @@ class Event(ndb.Model):
         
         #deletes any memories related to the event
         
+        #deletes search document
     
     @classmethod
     @ndb.transactional(xg=True)
@@ -86,6 +93,7 @@ class Event(ndb.Model):
        
         return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting]
         
-    
+        
+        
         
         
