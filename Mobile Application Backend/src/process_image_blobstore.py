@@ -29,13 +29,8 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         
         tempPhotoKey = self.request.get('tempPhotoKey')
        
-        tempPhotoKeyObject = ndb.Key(urlsafe = tempPhotoKey)
+        photo.Photo.addNewPhotoUsingTemp(tempPhotoKey, blobInfoObject)       
         
-        tempPhotoObject = tempPhotoKeyObject.get()
-       
-        photo.Photo.createNewPhoto(photoKey = blobInfoObject.key(), eventKey = tempPhotoObject.eventKey.urlsafe(), userKey = tempPhotoKeyObject.parent(), privacySetting = tempPhotoObject.privacySetting)
-        
-        tempPhotoKeyObject.delete()
     
     
 

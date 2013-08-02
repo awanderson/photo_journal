@@ -24,6 +24,11 @@ class fullPhotoObject(messages.Message):
     authToken = messages.StringField(5, required = True)
     userName = messages.StringField(6, required = True)
 
+class photoSpecifier(messages.Message):
+    photoKey = messages.StringField(1, required = True)
+    authToken = messages.StringField(3, required = True)
+    userName = messages.StringField(4, required = True)
+
 
 class uploadUrlGet(messages.Message):
     eventKey = messages.StringField(1, required = True)
@@ -90,8 +95,11 @@ class PhotoApi(remote.Service):
     #def pinPhoto(self):
         pass
         #receives photo key, event key, user tolkien
-
-    #def addPhoto(self):
-        #receive actual photo blob, 
+    @endpoints.method(photoSpecifier, callResult, name = 'Photo.removePhoto', path = 'removePhoto', http_method = 'POST')   
+    def removePhoto(self):
+        pass
         
-    #def removePhoto(self):
+        
+        
+        
+        
