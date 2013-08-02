@@ -15,30 +15,6 @@ class TempPhoto(ndb.Model):
         tempPhotoKey = newPhoto.put()
         
         return tempPhotoKey.urlsafe()
-    
-    """@classmethod
-    def getByUploadIdentifier(cls, uploadIdentifier):
-        
-        return cls.query().filter(cls.uploadIdentifier == uploadIdentifier).fetch()
-        
-        
-    
-    generates a random 9 digit integer that is unused
-    
-    @classmethod
-    def generateUploadIdentifier(cls):
-        
-        newNumber = True
-        
-        while newNumber:
-            newUploadIdentifier = random.randrange(100000000, 999999999, 1)
-            
-            Object = cls.query().filter(cls.uploadIdentifier == newUploadIdentifier).fetch()
-           
-            if not Object:
-                newNumber = False
-        
-        return newUploadIdentifier"""
 
 
 
@@ -61,7 +37,7 @@ class Photo(ndb.Model):
             blobInfoObject.delete()
             
             #deletes the photo objects - the descendants under events
-            photo.Key().delete()
+            photo.key().delete()
             
      
     @classmethod
@@ -77,6 +53,12 @@ class Photo(ndb.Model):
         newPhoto.put()
         
         tempPhotoKeyObject.delete()
+        
+    @classmethod
+    @ndb.transactional(xg=True)
+    def removePhotoByKey(cls, photoKey):
+        
+        ndb.Key(urlsafe = photoKey).delete()
         
    
             

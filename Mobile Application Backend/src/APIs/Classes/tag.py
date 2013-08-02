@@ -116,5 +116,4 @@ class Tag(ndb.Model):
         
         tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).fetch()
         return tagObList
-        
     

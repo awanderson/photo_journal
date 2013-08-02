@@ -35,6 +35,18 @@ class Memory(ndb.Model):
         
         #delete the event based off the key of the memory object
         ndb.Key(urlsafe = memoryKey).delete()
+        
+    """
+    deletes all memories from a given 
+    """
+    @classmethod
+    def removeUserMemoriesFromEvent(cls, eventKey, userKey):
+        
+        memoryObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(userKey == ndb.Key(urlsafe = userKey)).fetch()
+        
+        for memory in memoryObjects:
+            memory.key().delete()
+        
     
     """
     Edits a memory given a memoryKey

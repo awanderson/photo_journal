@@ -1,7 +1,5 @@
 import webapp2
 
-from google.appengine.ext import ndb
-
 from APIs.Classes import photo
 
 
@@ -28,7 +26,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         blobInfoObject = photoUpload[0]
         
         tempPhotoKey = self.request.get('tempPhotoKey')
-       
+
         photo.Photo.addNewPhotoUsingTemp(tempPhotoKey, blobInfoObject)       
         
     

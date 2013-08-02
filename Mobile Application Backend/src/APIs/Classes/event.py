@@ -1,10 +1,14 @@
 from google.appengine.ext import ndb
-import user_event
-import photo
 from webapp2_extras.appengine.auth import models
 from datetime import datetime
+
+
+import user_event
+import photo
+import memory
 import utilities
 import search
+import tag
 
 
 class Event(ndb.Model):
@@ -42,7 +46,7 @@ class Event(ndb.Model):
         eventKey = newEvent.put()
         user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
-        #adds search document
+        #adds search document - only had personal events to search document
         search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey)
         
         return True
@@ -57,14 +61,28 @@ class Event(ndb.Model):
         #removes the main event object
         cls.removeEventBykey(eventKey)
         
+        #removes tags from the user events object before deleting the user event - used to check to delete the tag if there are no more events that use that tag
+        userEventObject = user_event.UserEvent.getUserEventObject(eventKey, userKey)
+        
+        for tag in userEventObject.tagKey:
+            #gets the actual tag object that is a descendant from the user that holds the name of the tag
+            tagObject =  tag.key().get()
+           
+            #deletes the tag reference in the user event, and also the tag if it is not used anywhere else in other events
+            tag.Tag.removeTagFromEvent(eventKey, userKey, tagName = tagObject.name)
+           
+        
         #deletes the user event object
         user_event.UserEvent.removeUserEvent(eventKey, userKey)
         
         #deletes any photos corresponding to the event
+        photo.Photo.removeUsersPhotosFromEvent(eventKey, userKey)
         
         #deletes any memories related to the event
+        memory.Memory.removeUserMemoriesFromEvent(eventKey, userKey)
         
         #deletes search document
+        #search.DocumentManager.removeEventDoc(eventKey)
     
     @classmethod
     @ndb.transactional(xg=True)

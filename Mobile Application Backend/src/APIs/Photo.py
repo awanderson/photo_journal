@@ -26,8 +26,8 @@ class fullPhotoObject(messages.Message):
 
 class photoSpecifier(messages.Message):
     photoKey = messages.StringField(1, required = True)
-    authToken = messages.StringField(3, required = True)
-    userName = messages.StringField(4, required = True)
+    authToken = messages.StringField(2, required = True)
+    userName = messages.StringField(3, required = True)
 
 
 class uploadUrlGet(messages.Message):
@@ -52,9 +52,8 @@ class validateUserMessage(messages.Message):
     
 
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required = True)
-    errorMessage = messages.StringField(2, required = False)
-    errorNumber = messages.IntegerField(3, required = False)
+    errorMessage = messages.StringField(1, required = False)
+    errorNumber = messages.IntegerField(2, required = False)
 
 @endpoints.api(name='photoService', version='v0.0116', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
@@ -96,8 +95,20 @@ class PhotoApi(remote.Service):
         pass
         #receives photo key, event key, user tolkien
     @endpoints.method(photoSpecifier, callResult, name = 'Photo.removePhoto', path = 'removePhoto', http_method = 'POST')   
-    def removePhoto(self):
-        pass
+    def removePhoto(self, request):
+        
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        try:
+            photo.Photo.removePhotoByKey(request.photoKey)
+            callResult(errorNumber = 200, errorMessage = "Success")
+            
+        except:
+            callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+            
         
         
         

@@ -99,7 +99,7 @@ class EventApi(remote.Service):
         #create the event
         try:
             event.Event.createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey)
-        except ndb.transactional().TransactionFailedError:
+        except:
             return callResult(booleaValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
         
         #everything works and database is written to
@@ -128,28 +128,29 @@ class EventApi(remote.Service):
             
             #remove the private event and all its corresponding objects in the database
             try:
-                event.Event().removePrivateEvent(request.eventKey, userKey.urlsafe())
-            except ndb.transactional().TransactionFailedError:
+                event.Event.removePrivateEvent(request.eventKey, userKey)
+                return callResult(errorNumber = 200, errorMessage = "Success")
+            except:
                 return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
         
         #checks to see if the event is exclusive
         elif eventObject.privacySetting == 1:
             pass
             
+        elif eventObject.privacySetting == 2:
+            pass
             #removes the exclusive event from the user who requested it
      
 
     
     #@endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
     #def getEvent(self, request):
+    
+    #PHOTO SIZE PARAMETER
         #transactionSucceeded = True
        # eventObject = event.Event().getEventById(request.eventId)
        # return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
         
-    #@endpoints.method(eventSpecifier, fullEventObject, name='Event.getEventsFromRange', path='removeEvent', http_method='POST')
-    def getEventsFromRange(self, request):
-        pass
-        #to get a range of events from a user.. search the descendants
    
    
     """
@@ -237,21 +238,4 @@ class EventApi(remote.Service):
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(events = eventInfoList)
-        
-        
-        
-        
-        
-    #passed the title and date
-    #search by date first
-    
-    def addTag(self, request):
-        pass
-        #passed the event key and tag index number and user key
-        
-    def removeTag(self, request):
-        pass
-        #same as the add tag
-        #only removes tags from events... if no more events with tag delete the tag from the user db
-        #cant remove the default tags
         
