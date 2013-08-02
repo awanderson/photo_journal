@@ -68,6 +68,7 @@ class searchMessage(messages.Message):
     query = messages.StringField(1, required=True)
     authToken = messages.StringField(2, required=True)
     userName = messages.StringField(3, required=True)
+    date = messages.StringField(4, required=False)
 
 
 
@@ -223,7 +224,7 @@ class EventApi(remote.Service):
         if not userKey:
             return returnEventObjects(errorNumber = 1, errorMessage = "User Validation Failed")
         
-        eventKeyList = search.Search.queryEvents(request.query)
+        eventKeyList = search.Search.queryEvents(request.query, request.date)
         
         #defines list variable to hold event info
         eventInfoList = []

@@ -43,7 +43,7 @@ class Event(ndb.Model):
         user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
         #adds search document
-        search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey)
+        search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey, startDate, endDate)
         
         return True
         
@@ -70,6 +70,7 @@ class Event(ndb.Model):
     @ndb.transactional(xg=True)
     def removeExclusiveEvent(cls, eventKey):
         pass
+    
     
     @classmethod
     def removeEventBykey(cls, eventKey):

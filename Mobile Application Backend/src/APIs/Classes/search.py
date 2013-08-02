@@ -1,5 +1,6 @@
 from google.appengine.api import search
 import logging
+import utilities
 
 """
 manages the documents, which are merely events. Dynamically updates with calls from api
@@ -12,7 +13,7 @@ class DocumentManager():
     Adds event to doc with eventKey as doc id and name and description text fields to be searched
     """
     @classmethod
-    def addEventDoc(cls, eventKey, name, description, privacySetting, userKey):
+    def addEventDoc(cls, eventKey, name, description, privacySetting, userKey, startDate, endDate):
         
         
         event = search.Document(
@@ -20,7 +21,9 @@ class DocumentManager():
                 fields=[search.TextField(name='name', value = name),
                         search.TextField(name='description', value = description),
                         search.NumberField(name='privacySetting', value=privacySetting),
-                        search.TextField(name='userKey', value=userKey)])
+                        search.TextField(name='userKey', value=userKey),
+                        search.DateField(name='startDate', value=startDate),
+                        search.DateField(name='endDate', value=endDate)])
         
         # Index the document.
         try:
@@ -52,7 +55,7 @@ class DocumentManager():
     Edits given event by eventKey
     """
     @classmethod
-    def editEventDoc(cls, eventKey, name, description, privacySetting):
+    def editEventDoc(cls, eventKey, name, description, privacySetting, startDate, endDate):
         
         event = cls.index.get(eventKey)
         
@@ -63,6 +66,7 @@ class DocumentManager():
         if (privacySetting != ""):
             event.privacySetting = privacySetting
             
+        #saves edited event
         try:
             cls.index.put(event)
             logging.info("event put into document into index")
@@ -88,7 +92,7 @@ class Search():
     index = search.Index(name='events')
             
     @classmethod
-    def queryEvents(cls, string):
+    def queryEvents(cls, string, date):
         
         
         """
@@ -96,8 +100,10 @@ class Search():
         """
         eventKeyList = []
         
+        date = utilities.convertStringToSearchDate(date)
+        
         #builds query string to search name and description
-        queryString = "name:\""+string+"\" OR description:\""+string+"\""
+        queryString = "(name:\""+string+"\" OR description:\""+string+"\") AND (endDate >= "+date+" AND startDate <= "+date+")"
         
         #creates sort options
         sort_opts = search.SortOptions(match_scorer=search.MatchScorer())
@@ -113,6 +119,7 @@ class Search():
             for scored_events in results:
                 logging.info(scored_events)
                 eventKeyList.append(scored_events.doc_id)
+                
         except search.Error, e:
             pass
         
