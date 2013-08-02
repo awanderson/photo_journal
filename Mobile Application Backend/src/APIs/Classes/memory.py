@@ -28,6 +28,20 @@ class Memory(ndb.Model):
         
         #delete the event based off the key of the memory object
         ndb.Key(urlsafe = memoryKey).delete()
+    
+    """
+    Edits a memory given an event key
+    """
+    @classmethod
+    def editMemoryByKey(cls, title, content, memoryKey):
         
+        #gets memory object
+        memoryOb = ndb.Key(urlsafe=memoryKey).get()
         
+        #changes only non blank new fields
+        if(title != ""):
+            memoryOb.title = title
+        if(content != ""):
+            memoryOb.content = content   
         
+        memoryOb.put()           

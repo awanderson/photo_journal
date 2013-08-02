@@ -5,6 +5,16 @@ from google.appengine.ext import endpoints
 
 from Classes import event
 from Classes import user
+from Classes import user_event
+from Classes import tag
+
+"""
+
+Class Specifc Error Messages
+
+10 => No Events With That Tag
+11 => No Such Token Exists
+"""
 
 #message for specifying a specific event already in the database
 class eventKey(messages.Message):
@@ -25,8 +35,8 @@ class fullEventObject(messages.Message):
     location = messages.StringField(5, required = False)
     privacySetting = messages.IntegerField(6, default = 0, required = False)
     eventKey = messages.StringField(8, required = False)
-    authToken = messages.StringField(9, required = True)
-    userName = messages.StringField(10, required = True)
+    authToken = messages.StringField(9, required = False)
+    userName = messages.StringField(10, required = False)
     
     
 """
@@ -34,13 +44,28 @@ Used when returning events to the client application
 """
 class returnEventObjects(messages.Message):       
     #creates a list of event message objects to be returned
-    events = messages.MessageField(fullEventObject, 1, repeated=True)
-    
+    events = messages.MessageField(fullEventObject, 1, repeated=True, required=False)
+    errorMessage = messages.StringField(2, required = False)
+    errorNumber = messages.IntegerField(3, required = False)
+
+
+"""
+Used in getEventsFromTag to carry tag object
+"""
+class tagMessage(messages.Message):
+    tagName = messages.StringField(1, required = True)
+    authToken = messages.StringField(2, required = True)
+    userName = messages.StringField(3, required = True)
+
+
 class callResult(messages.Message):
     booleanValue = messages.BooleanField(1, required = True)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
     
+
+
+
 
 @endpoints.api(name='eventService', version='v0.0145', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
@@ -84,6 +109,7 @@ class EventApi(remote.Service):
     @endpoints.method(eventKey, callResult, name='Event.removeEvent', path='removeEvent', http_method='POST')   
     def removeEvent(self, request):
         
+        
         #checks if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
@@ -119,9 +145,52 @@ class EventApi(remote.Service):
     def getEventsFromRange(self, request):
         pass
         #to get a range of events from a user.. search the descendants
-        
+   
+   
+    """
+    Gets all the events with info for a tag string
+    """
+    @endpoints.method(tagMessage, returnEventObjects, name='Event.getEventsFromTag', path='getEventsFromTag', http_method='POST')     
     def getEventsFromTag(self, request):
-        pass
+        
+        #checks for blank fields
+        if(request.userName=="") or (request.authToken=="") or (request.tagName == ""):
+            return returnEventObjects(errorMessage = "Missing Required Fields", errorNumber=2)  
+        
+        
+        #checks if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return returnEventObjects(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        #gets tag key string
+        tagKey = tag.Tag.getTagObjectFromString(userKey, request.tagName).key.urlsafe()
+        
+        #not tag key means no tag exists, return error
+        if not tagKey:
+            return returnEventObjects(errorNumber = 11, errorMessage = "No Such Token Exists")
+        
+        #gets list of all events with tag
+        eventKeyList = user_event.UserEvent.getAllEventsFromTagOb(userKey, tagKey)
+        
+        #no events, return no info
+        if(len(eventKeyList) == 0):
+            return returnEventObjects(errorNumber = 10, errorMessage="No Events With That Tag")
+        
+        #defines list variable to hold event info
+        eventInfoList = []
+        
+        #goes through list and gets info for a specific key
+        for eventKey in eventKeyList:
+            
+            #gets event info from key
+            eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
+            #creates protorpc object
+            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
+            eventInfoList.append(fullEvent)
+            
+        return returnEventObjects(events = eventInfoList)
+        
     #gets all event from a tag
     
     def getAllUserEvents(self, request):
