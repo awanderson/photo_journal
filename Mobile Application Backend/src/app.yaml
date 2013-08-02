@@ -5,17 +5,16 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /.*
-  script: api_server.application
-  secure: always
   
 - url: /_ah/spi/.*
   script: api_server.application
   secure: always
   
-- url: /process_upload
-  script: process_image_blobstore.py
-  secure: always
+- url: /processupload
+  script: process_image_blobstore.application
+ 
+- url: /uploadimage
+  script: process_image_blobstore.application
   
 libraries:
 - name: webapp2
