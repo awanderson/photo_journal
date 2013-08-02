@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 import logging
+import utilities
     
 class UserEvent(ndb.Model):
     eventKey = ndb.KeyProperty()
@@ -78,7 +79,7 @@ class UserEvent(ndb.Model):
         tagKeyOb = ndb.Key(urlsafe=tagKey)
         
         try:
-            userEventOb.tagKey = cls.remove_values_from_list(userEventOb.tagKey, tagKeyOb)
+            userEventOb.tagKey = utilities.removeValuesFromList(userEventOb.tagKey, tagKeyOb)
             userEventOb.put()
             
         #user events has no tags, so can't remove tags
@@ -124,9 +125,3 @@ class UserEvent(ndb.Model):
         
         return userEventOb
         
-    """
-    helper method to remove item from list
-    """
-    @classmethod 
-    def remove_values_from_list(cls, the_list, val):
-        return [value for value in the_list if value != val]

@@ -4,7 +4,6 @@ class Memory(ndb.Model):
     
     title = ndb.StringProperty(indexed = False)
     content = ndb.TextProperty(indexed = False)
-    eventKey = ndb.KeyProperty()#event added to
     userKey = ndb.KeyProperty()#user who added memory
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
     
@@ -15,13 +14,21 @@ class Memory(ndb.Model):
     @classmethod
     def addMemoryToEvent(cls, title, content, eventKey, userKey):
         
+        #makes sure user doesn't already have a memory for given event
+        memoryOb = cls.getMemoryByEvent(eventKey, userKey)
+        
+        if memoryOb is not None:
+            return False
+        
         #create the new memory object to put in the databse, linked to the event and creator key
-        newMemory = Memory(title = title, content = content, eventKey = ndb.Key(urlsafe = eventKey), userKey = ndb.Key(urlsafe = userKey))
+        newMemory = Memory(title = title, content = content, parent = ndb.Key(urlsafe = eventKey), userKey = ndb.Key(urlsafe = userKey))
         newMemory.put()
+        
+        return True
         
     
     """
-    Deletes a memory from an event
+    Deletes a memory from an event given the memory key
     """
     @classmethod
     def removeMemoryByKey(cls, memoryKey):
@@ -30,7 +37,7 @@ class Memory(ndb.Model):
         ndb.Key(urlsafe = memoryKey).delete()
     
     """
-    Edits a memory given an event key
+    Edits a memory given a memoryKey
     """
     @classmethod
     def editMemoryByKey(cls, title, content, memoryKey):
@@ -44,4 +51,24 @@ class Memory(ndb.Model):
         if(content != ""):
             memoryOb.content = content   
         
-        memoryOb.put()           
+        memoryOb.put()
+        
+    """
+    Gets a memory given an event key and event key, returning title, content and key string
+    """
+    @classmethod
+    def getMemoryByEvent(cls, eventKey, userKey):
+    
+        memoryOb = None
+        
+        memoryObList = cls.query(ancestor = ndb.Key(urlsafe=eventKey)).filter(Memory.userKey == ndb.Key(urlsafe = userKey)).fetch()
+        for memoryOb in memoryObList:
+            
+            memoryOb = memoryOb
+        
+        if memoryOb is None:
+            return None
+        
+        return [memoryOb.title, memoryOb.content, memoryOb.key.urlsafe()]
+            
+        

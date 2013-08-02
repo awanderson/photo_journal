@@ -3,6 +3,7 @@ import user_event
 import photo
 from webapp2_extras.appengine.auth import models
 from datetime import datetime
+import utilities
 
 
 class Event(ndb.Model):
@@ -29,12 +30,12 @@ class Event(ndb.Model):
     @ndb.transactional(xg=True)
     def createNewEvent(cls, name, description, location, startDate, endDate, privacySetting, creatorKey):
         
-        startDate = cls.convertStringToDate(startDate)
+        startDate = utilities.convertStringToDate(startDate)
         
         if (endDate == startDate):
             endDate = startDate
         else:
-            endDate = cls.convertStringToDate(endDate)
+            endDate = utilities.convertStringToDate(endDate)
             
         newEvent = Event(name = name, description = description, location = location, startDate = startDate, endDate = endDate, privacySetting = privacySetting, creatorKey = ndb.Key(urlsafe = creatorKey) )
         eventKey = newEvent.put()
@@ -83,24 +84,8 @@ class Event(ndb.Model):
        
         eventOb = eventKeyOb.get()
        
-        return[eventOb.name, eventOb.description, cls.convertDateToString(eventOb.startDate), cls.convertDateToString(eventOb.endDate), eventOb.privacySetting]
+        return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting]
         
-    """
-    Converts a string of the form "MONTH DATE, YEAR" to a Python DateTime object.
-    @param inputDate: an input string of the format MONTH DATE, YEAR
-    @return: a python DATETIME object corresponding to the input string
-    """
-    @classmethod
-    def convertStringToDate(cls, inputDate):
-        
-        newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
-        return newDateObject
-
-    """
-    Converts a date back to a string for get methods, returns format MONTH DATE, YEAR
-    """
-    @classmethod
-    def convertDateToString(cls, inputDate):
-        return inputDate.strftime('%B %d, %Y')
+    
         
         

@@ -55,10 +55,10 @@ class MemoryApi(remote.Service):
             return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the new memory object
-        memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
+        boolVal = memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
         
         #return the result of the Api call 
-        return callResult(booleanValue = True)
+        return callResult(booleanValue = boolVal)
          
     
     @endpoints.method(memoryKey, callResult, name = 'Memory.removeMemory', path = 'removeMemory', http_method = 'POST')

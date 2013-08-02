@@ -1,6 +1,7 @@
 from google.appengine.ext import ndb
 import logging
 import user_event
+import utilities
 
 
 class Tag(ndb.Model):
@@ -34,7 +35,9 @@ class Tag(ndb.Model):
     @classmethod
     def addTagToEvent(cls, eventKey, userKey, tagName):
         
-        """need to modify tagName here first (capitalize first letter, etc.)"""
+        #clean tag name
+        tagName = utilities.cleanString(tagName)
+        
         
         tagOb = cls.getTagObjectFromString(userKey, tagName)
             
@@ -56,8 +59,8 @@ class Tag(ndb.Model):
     @classmethod
     def removeTagFromEvent(cls, eventKey, userKey, tagName):
         
-        """need to modify tagName here first (capitalize first letter, etc.)"""
-
+        #clean tag name
+        tagName = utilities.cleanString(tagName)
         
         tagOb = cls.getTagObjectFromString(userKey, tagName)
         
@@ -82,10 +85,16 @@ class Tag(ndb.Model):
             tagOb.key.delete()
             tagOb.put()
         return True
-
+    
+    """
+    Gets the tag object given a string
+    """
     @classmethod
     def getTagObjectFromString(cls, userKey, tagName):
-        """need to modify tagName here first (capitalize first letter, etc.)"""
+        
+        #clean tag name
+        tagName = utilities.cleanString(tagName)
+        
         tagOb = None
         
         #tries finding existing tag
@@ -98,3 +107,14 @@ class Tag(ndb.Model):
             return False
         
         return tagOb
+    
+    """
+    Gets all the tag objects of a user and returns them in a list
+    """
+    @classmethod
+    def getTagObjectsFromUser(cls,userKey):
+        
+        tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).fetch()
+        return tagObList
+        
+    

@@ -5,6 +5,7 @@ import logging
 from webapp2_extras.auth import InvalidAuthIdError
 from webapp2_extras.auth import InvalidPasswordError
 import tag
+import utilities
 
 
 class User():
@@ -178,7 +179,7 @@ class User():
         
         #tests if user has any friends
         try:
-            userOb.friends = cls.remove_values_from_list(userOb.friends, friendKeyOb)
+            userOb.friends = utilities.removeValuesFromList(userOb.friends, friendKeyOb)
             userOb.put()
             #queries is 
             
@@ -234,9 +235,3 @@ class User():
         else:
             return False
     
-    """
-    helper method to remove item from list, used primarily to remove friend from friend list
-    """
-    @classmethod 
-    def remove_values_from_list(cls, the_list, val):
-        return [value for value in the_list if value != val]
