@@ -14,6 +14,7 @@ def convertStringToDate(inputDate):
     newDateObject = datetime.strptime(inputDate, '%B %d, %Y')
     return newDateObject
 
+
 """
 Converts a date back to a string for get methods, returns format MONTH DATE, YEAR
 """
