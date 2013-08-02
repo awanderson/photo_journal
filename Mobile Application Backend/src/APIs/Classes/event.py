@@ -46,14 +46,9 @@ class Event(ndb.Model):
         eventKey = newEvent.put()
         user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
-<<<<<<< HEAD
         #adds search document - only had personal events to search document
-        search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey)
-=======
-        #adds search document
         search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey, startDate, endDate)
->>>>>>> branch 'master' of https://github.com/awanderson/photo_journal.git
-        
+              
         return True
         
     """
