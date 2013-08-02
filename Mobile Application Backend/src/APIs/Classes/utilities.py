@@ -1,5 +1,4 @@
 """
-
 This file contains helper functions that are used by multiple classes, mostly involving strings and dates
 """
 
