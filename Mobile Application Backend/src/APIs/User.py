@@ -1,10 +1,12 @@
 #development api explorer located at localhost:8080/_ah/api/explorer - uses googles own server and passes your localhost as the base so basically accessing your locahost from google's server.. nice
 from google.appengine.ext import ndb
 from protorpc import messages
+from protorpc import message_types
 from protorpc import remote
 from google.appengine.ext import endpoints
 #from webapp2_extras.appengine.auth import models
 from Classes import user
+from Classes import notification
 
 """
 Error Messages
@@ -67,6 +69,23 @@ class returnFriendObjects(messages.Message):
     friends = messages.MessageField(fullFriendObject, 1, repeated=True)
     errorMessage = messages.StringField(2, required=False)
     errorNumber = messages.IntegerField(3, required=False)
+
+class fullNotificationObject(messages.Message):
+    eventKey = messages.StringField(1)
+    creatorKey = messages.StringField(2)
+    eventName = messages.StringField(3)
+    creatorName = messages.StringField(4)
+    created = message_types.DateTimeField(5)
+    notificationKey = messages.StringField(6)
+    
+
+class returnNotificationObjects(messages.Message):
+    
+    notifications = messages.MessageField(fullNotificationObject, 1, repeated=True)
+    errorMessage = messages.StringField(2, required=False)
+    errorNumber = messages.IntegerField(3, required=False)
+    
+    
     
 #used on get methods when only need to validate user
 class validateUserMessage(messages.Message):
@@ -253,7 +272,44 @@ class UserApi(remote.Service):
             friendInfoList.append(fullFriend)
         
         return returnFriendObjects(friends = friendInfoList)
+    
+    
+    @endpoints.method(validateUserMessage, returnNotificationObjects, name='User.getNotifications', path='getNotifications', http_method='POST')    
+    def getNotifications(self, request):
+        
+        #checks for blank fields
+        if(request.userName=="") or (request.authToken==""):
+            return returnFriendObjects(errorMessage = "Missing Required Fields", errorNumber=2)  
+        
+        #validates user
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return returnFriendObjects(errorMessage = "User Validation Failed", errorNumber = 1)
+        
+        #get all notifications
+        notificationObList = notification.Notification.getUserNotifications(userKey)
+        
+        notificationInfoList = []
+        
+        #iterates through notification objects
+        for notificationOb in notificationObList:
+        
+            eventKey = notificationOb.eventKey.urlsafe()
+            eventName = notificationOb.eventName
+            creatorKey = notificationOb.creatorKey.urlsafe()
+            notificationKey = notificationOb.key.urlsafe()
             
+            #gets the user object to get the name
+            creatorInfo = user.User.getFriendInfo(notificationOb.creatorKey)
+            creatorName = creatorInfo[2]
+            
+            created = notificationOb.created
+            fullNotification = fullNotificationObject(eventKey = eventKey, eventName=eventName,
+                                                      creatorKey = creatorKey, creatorName = creatorName,
+                                                      created = created, notificationKey = notificationKey)
+            notificationInfoList.append(fullNotification)
+            
+        return returnNotificationObjects(notifications = notificationInfoList)
     
     def checkUserExist(self):
         pass
