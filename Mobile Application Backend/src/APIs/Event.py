@@ -8,6 +8,7 @@ from Classes import user
 from Classes import user_event
 from Classes import tag
 from Classes import search
+from Classes import photo
 
 """
 
@@ -60,7 +61,7 @@ class tagMessage(messages.Message):
 
 
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required = True)
+    booleanValue = messages.BooleanField(1, required = False)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
 
@@ -129,19 +130,28 @@ class EventApi(remote.Service):
             
             #remove the private event and all its corresponding objects in the database
             try:
-                event.Event.removePrivateEvent(request.eventKey, userKey)
+                event.Event.removePrivateEvent(eventKey = request.eventKey, userKey = userKey)
+                
+                #CHANGE LOCATION BACK INTO A TRANSACTION ONCE SDK IS FIXED
+                #this is called here because there is a bug in googles code that wont allow blobinfo objects to be gotten by key within a transaction
+                photo.Photo.removeUsersPhotosFromEvent(eventKey = request.eventKey, userKey = userKey)
                 return callResult(errorNumber = 200, errorMessage = "Success")
             except:
-                return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
+                return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
         
         #checks to see if the event is exclusive
         elif eventObject.privacySetting == 1:
             pass
             
+        #checks to see if the event is public
         elif eventObject.privacySetting == 2:
-            pass
-            #removes the exclusive event from the user who requested it
-     
+            
+            try:
+                event.Event.removePublicEvent(eventKey = eventKey, userKey = userKey)
+                
+                return callResult(errorNumber = 200, errorMessage = "Success")
+            except:
+                return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
 
     
     #@endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')

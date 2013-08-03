@@ -42,10 +42,10 @@ class Memory(ndb.Model):
     @classmethod
     def removeUserMemoriesFromEvent(cls, eventKey, userKey):
         
-        memoryObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(userKey == ndb.Key(urlsafe = userKey)).fetch()
+        memoryObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.userKey == ndb.Key(urlsafe = userKey)).fetch()
         
         for memory in memoryObjects:
-            memory.key().delete()
+            memory.key.delete()
         
     
     """

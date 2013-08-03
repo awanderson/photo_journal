@@ -70,20 +70,19 @@ class Tag(ndb.Model):
         
         tagKey = tagOb.key.urlsafe()
         
-        if not user_event.UserEvent.removeTagObFromEvent(eventKey, userKey, tagKey):
-            return False
-        
         #checks to see if there are other events from same tag
         eventKeyList = user_event.UserEvent.getAllEventsFromTagOb(userKey, tagKey)
         
         logging.info(len(eventKeyList))
         
         #if no other events, remove tag if it isn't permanent
-        if(len(eventKeyList) == 0 and (tagOb.permanent==False)):
-            logging.info('trying to delete')
-            logging.info(tagOb)
+        if(len(eventKeyList) == 1 and (tagOb.permanent==False)):
             tagOb.key.delete()
-            tagOb.put()
+        
+        
+        if not user_event.UserEvent.removeTagObFromEvent(eventKey, userKey, tagKey):
+            return False
+        
         return True
     
     """

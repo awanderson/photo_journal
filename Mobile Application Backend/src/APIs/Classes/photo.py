@@ -1,10 +1,9 @@
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
-import random
 
 class TempPhoto(ndb.Model):
-    eventKey = ndb.KeyProperty()#event added to
-    privacySetting = ndb.IntegerProperty(choices = [0, 1, 2])
+    eventKey = ndb.KeyProperty(indexed = False)#event added to
+    privacySetting = ndb.IntegerProperty(choices = [0, 1, 2], indexed = False)
     
     @classmethod
     def createNewTempPhoto(cls, eventKey, userKey, privacySetting):
@@ -28,16 +27,17 @@ class Photo(ndb.Model):
     @classmethod
     def removeUsersPhotosFromEvent(cls, eventKey, userKey):
         
-        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(userKey == ndb.Key(urlsafe = userKey)).fetch()
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.userKey == ndb.Key(urlsafe = userKey)).fetch()
         
-        for photo in photoObjects:
+        for photoOb in photoObjects:
             
             #retreives the blobinfo object and then deletes the corresponding blob along with the blobinfo object
-            blobInfoObject = blobstore.get(photo.blobKey)
+            blobInfoObject = blobstore.BlobInfo.get(photoOb.blobKey)
             blobInfoObject.delete()
             
+            
             #deletes the photo objects - the descendants under events
-            photo.key().delete()
+            photoOb.key.delete()
             
      
     @classmethod

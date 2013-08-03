@@ -31,7 +31,6 @@ class UserEvent(ndb.Model):
         
         #deletes the user event
         userEventOb.key.delete()
-        userEventOb.put()
         return True
     
     
