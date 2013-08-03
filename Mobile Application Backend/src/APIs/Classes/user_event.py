@@ -14,8 +14,18 @@ class UserEvent(ndb.Model):
     """
     @classmethod
     def addUserEvent(cls, eventKey, userKey):
+        
+        #makes sure userEvent doesn't already exists
+        #gets userEvent Object
+        userEventOb = cls.getUserEventObject(eventKey, userKey)
+        
+        if userEventOb:
+            logging.info(userEventOb)
+            return False
+        
         userEventObject = UserEvent(parent = ndb.Key(urlsafe=userKey), eventKey = ndb.Key(urlsafe=eventKey))
         userEventObject.put()
+        return True
     
     """
     deletes an event from a user's journal - not checked if working (modified, still haven't checked if working)
@@ -86,6 +96,23 @@ class UserEvent(ndb.Model):
             return True
         
         return True
+    
+    """
+    Returns a list of all event keys strings for a specific user
+    """
+    @classmethod
+    def getAllUserEvents(cls, userKey):
+        
+        #gets userEvent Object
+        userEventObjectList = cls.query(ancestor = ndb.Key(urlsafe=userKey)).fetch()
+        
+        eventKeyList = []
+        
+        #puts event key in new list
+        for userEventOb in userEventObjectList:
+            eventKeyList.append(userEventOb.eventKey.urlsafe())
+            
+        return eventKeyList
     
     """
     Returns list of all events keys strings for a specific user and tag

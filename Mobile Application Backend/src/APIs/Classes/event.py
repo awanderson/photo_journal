@@ -1,7 +1,7 @@
 from google.appengine.ext import ndb
 from webapp2_extras.appengine.auth import models
 from datetime import datetime
-from webapp2_extras.appengine.auth import models
+import logging
 
 import user_event
 import photo
@@ -9,6 +9,7 @@ import memory
 import utilities
 import search
 import tag
+import notification
 
 
 class Event(ndb.Model):
@@ -21,9 +22,35 @@ class Event(ndb.Model):
     privacySetting = ndb.IntegerProperty(choices = [0, 1, 2]) #0 is default 0=private 1=exclusive 2=public
     creatorKey = ndb.KeyProperty()
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
+    friendsInvited = ndb.KeyProperty(repeated=True)
     
-    def addEventToUserJournal(self):
-        pass
+    
+    """
+    Adds a user event to a users journal if the event is public, or user is on the invite list of 
+    an exclusive event
+    """
+    @classmethod
+    def addEventToUserJournal(cls, eventKey, userKey):
+        
+        
+        eventOb = ndb.Key(urlsafe=eventKey).get()
+        
+        #personal event, can't add to somebody's else's journal
+        if(eventOb.privacySetting == 0):
+            logging.info("wrong privacy settings")
+            return False
+        
+        #invite only event, makes sure user is on list
+        elif eventOb.privacySetting == 1:
+            if ndb.Key(urlsafe=userKey) not in eventOb.friendsInvited:
+                logging.info("not on invite list")
+                return False
+            
+        logging.info("calling user event")
+        #creates user event connecting user to event            
+        return user_event.UserEvent.addUserEvent(eventKey, userKey)
+        
+
     
     """
     Creates a new event tied to a specific user based on the input parameters
@@ -32,8 +59,8 @@ class Event(ndb.Model):
     @param privacySetting: an integer that determines if event is private (default 0), exclusive (1), or public (2)
     """
     @classmethod
-    @ndb.transactional(xg=True)
-    def createNewEvent(cls, name, description, location, startDate, endDate, privacySetting, creatorKey):
+    #@ndb.transactional(xg=True)
+    def createNewEvent(cls, name, description, location, startDate, endDate, privacySetting, creatorKey, friendsInvited):
         
         startDate = utilities.convertStringToDate(startDate)
         
@@ -46,9 +73,26 @@ class Event(ndb.Model):
         eventKey = newEvent.put()
         user_event.UserEvent.addUserEvent(eventKey.urlsafe(), creatorKey)
         
-        #adds search document - only had personal events to search document
-        search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey, startDate, endDate)
+        #adds search document - only adds public events to search document
+        if(privacySetting == 2):
+            search.DocumentManager.addEventDoc(eventKey.urlsafe(), name, description, privacySetting, creatorKey, startDate, endDate)
+        
+        eventOb = eventKey.get()
+        
+        #exclusive event, create notifications to invite members
+        if(privacySetting == 1):
+            
+            #goes through every friend invited
+            for friendKey in friendsInvited:
+                #creates notification
+                notification.Notification.addNotification(eventKey.urlsafe(), friendKey, creatorKey, name)
+                
+                #adds to event invite list
+                eventOb.friendsInvited.append(ndb.Key(urlsafe=friendKey))
               
+            #saves event object with correct friendsInvited list
+            eventOb.put()
+            
         return True
         
     """
@@ -57,7 +101,6 @@ class Event(ndb.Model):
     @classmethod   
     @ndb.transactional(xg=True)
     def removePrivateEvent(cls, eventKey, userKey):
-        pass
         
         #removes the main event object
         cls.removeEventBykey(eventKey)
@@ -120,8 +163,12 @@ class Event(ndb.Model):
     @classmethod
     def getEventInfo(cls, eventKeyOb):   
        
+        logging.info(eventKeyOb)
+       
         eventOb = eventKeyOb.get()
        
+        if(eventOb is None):
+            return False
         return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting]
         
     @classmethod
@@ -133,5 +180,45 @@ class Event(ndb.Model):
         
         eventObject.creatorKey = adminUserObject.key()
         
+        """
+    Adds a friend to invite list and generates a notification
+    """
+    @classmethod
+    def addInviteToEvent(cls, eventKey, friendKey):
         
+        eventOb = ndb.Key(urlsafe=eventKey).get()
+        #not an invite event
+        if(eventOb.privacySetting != 1):
+            return False
         
+        #make sure friend is not already invited to event
+        if ndb.Key(urlsafe=friendKey) in eventOb.friendsInvited:
+            return False
+        
+        name = eventOb.name
+        creatorKey = eventOb.creatorKey.urlsafe()
+        #creates notification
+        notification.Notification.addNotification(eventKey, friendKey, creatorKey, name)
+                
+        #adds to event invite list
+        eventOb.friendsInvited.append(ndb.Key(urlsafe=friendKey))
+        
+        #puts appended object into database
+        eventOb.put()
+        
+        return True
+    
+    """
+    Removes a friend from an event db object
+    """
+    @classmethod
+    def removeInviteFromEvent(cls, eventKey, userKey):
+    
+        eventOb = ndb.Key(urlsafe=eventKey).get()
+    
+        #removes user key object from friends invited list
+        eventOb.friendsInvited = utilities.removeValuesFromList(eventOb.friendsInvited, ndb.Key(urlsafe=userKey))
+    
+        eventOb.put()
+    
+        return True
