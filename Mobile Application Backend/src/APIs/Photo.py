@@ -2,7 +2,7 @@
 Photo API Custom Error Codes
 
 10 - Upload URL Generation Failed (There was a problem generating the url to upload the photos to. Possibly a time-out error.)
-
+11 - Private Photo\Owned By User (The photo trying to be acted upon is private)
 """
 
 from google.appengine.ext import ndb
@@ -11,18 +11,9 @@ from protorpc import remote
 from google.appengine.ext import endpoints
 from google.appengine.ext import blobstore
 
-import random
-
 from Classes import user
 from Classes import photo
-
-class fullPhotoObject(messages.Message):
-    photo = messages.BytesField(1, required = True)
-    eventKey = messages.StringField(2, required = True)
-    userKey = messages.StringField(3, required = True)
-    privacySetting = messages.IntegerField(4, default = 0, required = False)
-    authToken = messages.StringField(5, required = True)
-    userName = messages.StringField(6, required = True)
+from Classes import user_event
 
 class photoSpecifier(messages.Message):
     photoKey = messages.StringField(1, required = True)
@@ -40,21 +31,18 @@ class uploadUrlReturn(messages.Message):
     uploadUrl = messages.StringField(1, required = False)
     tempPhotoKey = messages.StringField(2, required = False)
     errorMessage = messages.StringField(3, required = False)
-    errorNumber = messages.IntegerField(4, required = False)
+    errorNumber = messages.IntegerField(4, required = False) 
     
-        
-#used on get methods when only need to validate user
-class validateUserMessage(messages.Message):
-    userName = messages.StringField(1, required=True)
-    authToken = messages.StringField(2, required=True) 
-    
-
-    
-
 class callResult(messages.Message):
     errorMessage = messages.StringField(1, required = False)
     errorNumber = messages.IntegerField(2, required = False)
 
+class pinPhotoMessage(messages.Message):
+    photoKey = messages.StringField(1, required = True)
+    eventKey = messages.StringField(2, required = True)
+    authToken = messages.StringField(3, required = True)
+    userName = messages.StringField(4, required = True)
+    
 @endpoints.api(name='photoService', version='v0.0116', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
     
@@ -89,11 +77,43 @@ class PhotoApi(remote.Service):
             ndb.Key(urlsafe = tempPhotoKey).delete()
             #if can't retrieve the url created - timeout or other error
             return uploadUrlReturn(errorNumber = 11, errorMessage = "Upload URL Generation Failed")
+        
+    """
+    pins a photo to a users user event object
+    """
+    @endpoints.method(pinPhotoMessage, callResult, name='Photo.pinPhoto', path = 'pinPhoto', http_method = 'POST')
+    def pinPhoto(self, request):
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        result = user_event.UserEvent.pinPhoto(userKey = userKey, photoKey = request.photoKey, eventKey = request.eventKey)
             
+        if result == False:
+            return callResult(errorNumber = 11, errorMessage = "Private Photo\Owned By User")
+        
+        else:        
+            return callResult(errorNumber = 200, errorMessage = "Success")
     
-    #def pinPhoto(self):
-        pass
-        #receives photo key, event key, user tolkien
+    """
+    removes a pinned photo from a users user event object
+    """        
+    @endpoints.method(pinPhotoMessage, callResult, name = 'Photo.removePinnedPhoto', path = 'removePinnedPhoto', http_method = 'POST')
+    def removePinnedPhoto(self, request):
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        try:
+            user_event.UserEvent.removePinnedPhoto(eventKey = request.eventKey, userKey = userKey, photoKey = request.photoKey)
+            return callResult(errorNumber = 200, errorMessage = "Success")
+        except:
+            return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+    """
+    removes a photo based on the photokey
+    """
     @endpoints.method(photoSpecifier, callResult, name = 'Photo.removePhoto', path = 'removePhoto', http_method = 'POST')   
     def removePhoto(self, request):
         

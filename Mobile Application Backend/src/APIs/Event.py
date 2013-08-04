@@ -112,7 +112,7 @@ class EventApi(remote.Service):
             return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         if event.Event.addEventToUserJournal(request.eventKey, userKey):
-            return callResult(errorNumber = 200)
+            return callResult(errorNumber = 200, errorMessage = "Success")
         
         else:
             return callResult(errorNumber = 12, errorMessage="Issue Adding Event")
@@ -158,35 +158,21 @@ class EventApi(remote.Service):
         
         #gets the event object from the database
         eventObject = ndb.Key(urlsafe=request.eventKey).get()
-        
-        #checks to see if the event is private
-        if eventObject.privacySetting == 0:
             
-            #remove the private event and all its corresponding objects in the database
-            try:
-                event.Event.removePrivateEvent(eventKey = request.eventKey, userKey = userKey)
+        #remove the private event and all its corresponding objects in the database
+        try:
+            event.Event.removeEvent(eventKey = request.eventKey, userKey = userKey, eventObject = eventObject)
                 
-                #CHANGE LOCATION BACK INTO A TRANSACTION ONCE SDK IS FIXED
-                #this is called here because there is a bug in googles code that wont allow blobinfo objects to be gotten by key within a transaction
-                photo.Photo.removeUsersPhotosFromEvent(eventKey = request.eventKey, userKey = userKey)
-                return callResult(errorNumber = 200, errorMessage = "Success")
-            except:
-                return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+            #CHANGE LOCATION BACK INTO A TRANSACTION ONCE SDK IS FIXED
+            #this is called here because there is a bug in googles code that wont allow blobinfo objects to be gotten by key within a transaction
+            photo.Photo.removeUsersPhotosFromEvent(eventKey = request.eventKey, userKey = userKey)
+            
+            return callResult(errorNumber = 200, errorMessage = "Success")
         
-        #checks to see if the event is exclusive
-        elif eventObject.privacySetting == 1:
-            pass
+        except:
             
-        #checks to see if the event is public
-        elif eventObject.privacySetting == 2:
-            
-            try:
-                event.Event.removePublicEvent(eventKey = eventKey, userKey = userKey)
-                
-                return callResult(errorNumber = 200, errorMessage = "Success")
-            except:
-                return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
-
+            return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+        
     
     #@endpoints.method(eventId, fullEventObject, name='Event.getEvent', path='getEvent', http_method='POST')
     #def getEvent(self, request):

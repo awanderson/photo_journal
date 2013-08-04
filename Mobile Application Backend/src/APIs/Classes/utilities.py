@@ -37,7 +37,7 @@ def cleanString(string):
     return ' '.join(word[0].upper() + word[1:] for word in string.split())
 
 """
-helper method to remove item from list, used primarily to remove friend from friend list
+helper method to remove item from list, used primarily to remove friend from friend list and pinned photos from pinned photos list
 """
 def removeValuesFromList(the_list, val):
     return [value for value in the_list if value != val]
