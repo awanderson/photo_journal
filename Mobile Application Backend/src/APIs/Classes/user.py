@@ -52,7 +52,6 @@ class User():
     logins user given username and password, returns authToken to validate user in future
     """
     @classmethod
-    @ndb.transactional(xg=True)
     def loginUser(cls,userName, rawPassword):
         
         try:
@@ -73,7 +72,6 @@ class User():
     Logouts user by deleting authToken from database 
     """ 
     @classmethod
-    @ndb.transactional(xg=True)
     def logoutUser(cls, userName, authToken):
         
         #gets user object for id
@@ -87,7 +85,6 @@ class User():
     adds a friend to user object given a friend key
     """
     @classmethod
-    @ndb.transactional(xg=True)
     def addFriend(cls, userKey, friendKey):
         
         userKeyOb = ndb.Key(urlsafe=userKey)
@@ -128,7 +125,6 @@ class User():
     adds a friend to user object given a friend userName
     """
     @classmethod
-    @ndb.transactional(xg=True)
     def addFriendFromUserName(cls, userKey, friendUserName):
         userKeyOb = ndb.Key(urlsafe=userKey)
         userOb = userKeyOb.get()

@@ -153,7 +153,22 @@ class UserApi(remote.Service):
         return callResult(booleanValue=userData)
         
         
+    """
+    
+    """
+    @endpoints.method(validateUserMessage, callResult, name='User.validateUser', path='validateUser', http_method='POST')
+    def validateUser(self, request):
+        #checks for blank fields
+        if (request.userName == "") or (request.authToken == ""):
+            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
         
+        #validates user
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+        
+        return callResult(errorNumber=200, booleanValue=True);
+      
     def getSettings(self, request):
         pass
         #returns an object with all user settings
@@ -309,7 +324,7 @@ class UserApi(remote.Service):
                                                       created = created, notificationKey = notificationKey)
             notificationInfoList.append(fullNotification)
             
-        return returnNotificationObjects(notifications = notificationInfoList)
+        return returnNotificationObjects(notifications = notificationInfoList, errorNumber=200)
     
     def checkUserExist(self):
         pass

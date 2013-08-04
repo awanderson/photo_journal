@@ -136,7 +136,6 @@ class Event(ndb.Model):
         pass
     
     @classmethod
-    @ndb.transaction(xg=True)
     def removePublicEvent(cls, eventKey, userKey):
         
         #removes the users key from the event's creator key field
