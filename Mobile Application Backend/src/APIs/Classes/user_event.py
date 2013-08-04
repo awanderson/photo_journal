@@ -5,7 +5,7 @@ import utilities
 class UserEvent(ndb.Model):
     eventKey = ndb.KeyProperty()
     tagKey = ndb.KeyProperty(repeated = True)
-    pinnedPictureReference = ndb.KeyProperty()
+    pinnedPhotoKey = ndb.KeyProperty(repeated = True)
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
     
     
@@ -66,8 +66,6 @@ class UserEvent(ndb.Model):
         
         #Appends to tagKey list
         userEventOb.tagKey.append(tagKeyOb)
-        
-        #no list, just set tagKey equal to single value
         
         userEventOb.put()
         return True
@@ -150,4 +148,63 @@ class UserEvent(ndb.Model):
             return False
         
         return userEventOb
+    
+    """
+    adds a photo to a users pinned photos for a specific event
+    """
+    @classmethod
+    @ndb.transactional(xg = True)
+    def pinPhoto(cls, eventKey, userKey, photoKey):
+       
+        #gets the user's user event object
+        userEventObject = cls.getUserEventObject(eventKey = eventKey, userKey = userKey)
         
+        #creates the photokey object representing the photo to be stored in the database
+        photoKeyObject = ndb.Key(urlsafe = photoKey)
+        
+        photoObject = photoKeyObject.get()
+        
+        #makes sure the picture is public and not owned by the user before "pinning" it, not owned
+        if photoObject.privacySetting == 2 and photoObject.userKey != ndb.Key(urlsafe = userKey):
+        
+            #checks if the photo key is already in the pinned list for the event
+            if photoKeyObject in userEventObject.pinnedPhotoKey:
+                logging.info("Photo Already Pinned")
+            
+                #if not already in the list, adds the photokey to the list
+            else:
+                userEventObject.pinnedPhotoKey.append(photoKeyObject)
+        
+        #store the modified user event object back in the database with the pinned photo reference
+            userEventObject.put()
+        
+        #doesn't do anything because the photo is private
+        else:
+            logging.info("Photo is private or photo is owned by user")
+            return False
+        
+    """
+    removes a photo from a users pinned photos for a specific event
+    """
+    @classmethod
+    @ndb.transactional(xg = True)
+    def removePinnedPhoto(cls, eventKey, userKey, photoKey):
+            
+        #gets the user's event sobject
+        userEventObject = cls.getUserEventObject(eventKey = eventKey, userKey = userKey)
+            
+        #try to remove the photo from the pinned photo list
+        try:
+            userEventObject.pinnedPhotoKey = utilities.removeValuesFromList(userEventObject.pinnedPhotoKey, ndb.Key(urlsafe = photoKey))
+            userEventObject.put()
+            
+        #user events has no pinned photos, so can't remove pinned photos
+        except:
+            return True
+        
+    """
+    remove all pinned photo references - used when a photo is deleted from an event
+    """
+    @classmethod
+    def removeAllPinnedPhotosForPhoto(cls, eventKey, photoKey):
+        pass

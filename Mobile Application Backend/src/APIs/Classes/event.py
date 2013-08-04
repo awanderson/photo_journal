@@ -1,6 +1,5 @@
 from google.appengine.ext import ndb
 from webapp2_extras.appengine.auth import models
-from datetime import datetime
 import logging
 
 import user_event
@@ -100,11 +99,22 @@ class Event(ndb.Model):
     """
     @classmethod   
     @ndb.transactional(xg=True)
-    def removePrivateEvent(cls, eventKey, userKey):
+    def removeEvent(cls, eventKey, userKey, eventObject):
         
-        #removes the main event object
-        cls.removeEventBykey(eventKey)
+        userKeyObject = ndb.Key(urlsafe = userKey)
         
+        if eventObject.privacySetting == 0:
+            #removes the main event object
+            cls.removeEventBykey(eventKey)
+        
+        elif eventObject.privacySetting == 1 and eventObject.creatorKey == userKeyObject:
+            #removes the users key from the event's creator key field
+            cls.changeCreatorToAdmin(eventKey = eventKey)
+        
+        elif eventObject.privacySetting == 2 and eventObject.creatorKey == userKeyObject:
+            #removes the users key from the event's creator key field
+            cls.changeCreatorToAdmin(eventKey = eventKey)
+            
         #removes tags from the user events object before deleting the user event - used to check to delete the tag if there are no more events that use that tag
         userEventObject = user_event.UserEvent.getUserEventObject(eventKey = eventKey, userKey = userKey)
         
@@ -127,22 +137,10 @@ class Event(ndb.Model):
         #deletes any memories related to the event
         memory.Memory.removeUserMemoriesFromEvent(eventKey = eventKey, userKey = userKey)
         
-        #deletes search document
-        search.DocumentManager.removeEventDoc(eventKey = eventKey)
-    
-    @classmethod
-    @ndb.transactional(xg=True)
-    def removeExclusiveEvent(cls, eventKey):
-        pass
-    
-    @classmethod
-    @ndb.transaction(xg=True)
-    def removePublicEvent(cls, eventKey, userKey):
-        
-        #removes the users key from the event's creator key field
-        cls.changeCreatorToAdmin(eventKey = eventKey)
-        
-        #copy over the stuff from the event, make it a helper function?
+        if eventObject.creatorKey == userKeyObject:
+            
+            #deletes search document
+            search.DocumentManager.removeEventDoc(eventKey = eventKey)
         
     
     @classmethod
@@ -170,15 +168,36 @@ class Event(ndb.Model):
         if(eventOb is None):
             return False
         return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting]
-        
+    
+    """
+    changes the creater of an event to the admin user
+    """
     @classmethod
     def changeCreatorToAdmin(cls, eventKey):
         
+        #gets the event object based on the key
         eventObject = ndb.Key(urlsafe = eventKey).get()
         
-        adminUserObject = models.User.get_by_auth_id("admin")
+        #gets the user object that represents our admin account
+        adminUserObject = cls.getAdminUser()
         
-        eventObject.creatorKey = adminUserObject.key()
+        #changes the creator key field in the event object to the key of the admin user
+        eventObject.creatorKey = adminUserObject.key
+        
+        #puts the object back into the database
+        eventObject.put()
+    
+    """
+    gets the admin user object - a helper function because it can't be in a transaction (not an ancestor query)
+    """
+    @classmethod
+    @ndb.non_transactional()
+    def getAdminUser(cls):
+        adminUserObject = models.User.get_by_auth_id("admin")
+        if not adminUserObject:
+            return False
+        else:
+            return adminUserObject
         
         """
     Adds a friend to invite list and generates a notification
