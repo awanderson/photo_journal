@@ -210,7 +210,7 @@ class UserEvent(ndb.Model):
     """
     @classmethod
     def removeAllPinnedPhotosForPhoto(cls, eventKey, photoKey):
-        userEventObjects
+        userEventObjects = cls.searchUserEventsWithPinnedPhoto(photoKey = photoKey, eventKey = eventKey)
     
     """
     finds all user events with the specified photo in the pinned photos (helper event because non-transactional)

@@ -14,7 +14,7 @@ handlers:
   script: process_image_blobstore.application
  
 - url: /uploadimage
-  script: process_image_blobstore.applications
+  script: process_image_blobstore.application
   
 
 libraries:
