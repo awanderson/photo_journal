@@ -22,6 +22,8 @@ class Event(ndb.Model):
     privacySetting = ndb.IntegerProperty(choices = [0, 1, 2]) #0 is default 0=private 1=exclusive 2=public
     creatorKey = ndb.KeyProperty()
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
+    updated = ndb.DateTimeProperty(auto_now=True, indexed = False)
+    
     friendsInvited = ndb.KeyProperty(repeated=True)
     
     
@@ -138,7 +140,7 @@ class Event(ndb.Model):
         #deletes any memories related to the event
         memory.Memory.removeUserMemoriesFromEvent(eventKey = eventKey, userKey = userKey)
         
-         if eventObject.creatorKey == userKeyObject:
+        if eventObject.creatorKey == userKeyObject:
             
             #deletes search document
             search.DocumentManager.removeEventDoc(eventKey = eventKey)       
@@ -168,7 +170,7 @@ class Event(ndb.Model):
        
         if(eventOb is None):
             return False
-        return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting]
+        return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.updated]
     
     """
     changes the creater of an event to the admin user
@@ -242,3 +244,18 @@ class Event(ndb.Model):
         eventOb.put()
     
         return True
+    
+    @classmethod
+    def checkSync(cls, eventKey, userKey, lastSynced):
+        
+        #gets event object
+        eventOb = ndb.Key(urlsafe=eventKey).get()
+        #gets last synced in right format for comparing to backend date
+        lastSynced = utilities.convertStringToDate(lastSynced)
+        
+        #event out of date, return information
+        if(eventOb.updated > lastSynced):
+            return [True, eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.location]
+        
+        else:
+            return [False]   

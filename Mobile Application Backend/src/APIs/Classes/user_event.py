@@ -1,12 +1,14 @@
 from google.appengine.ext import ndb
 import logging
 import utilities
+import event
     
 class UserEvent(ndb.Model):
     eventKey = ndb.KeyProperty()
     tagKey = ndb.KeyProperty(repeated = True)
     pinnedPhotoKey = ndb.KeyProperty(repeated = True)
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
+    updated = ndb.DateTimeProperty(auto_now=True, indexed = False)
     
     
     """
@@ -148,6 +150,7 @@ class UserEvent(ndb.Model):
             return False
         
         return userEventOb
+    
     
     """
     adds a photo to a users pinned photos for a specific event

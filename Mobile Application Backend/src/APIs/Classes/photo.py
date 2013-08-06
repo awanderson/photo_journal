@@ -57,7 +57,7 @@ class Photo(ndb.Model):
     """
     @classmethod
     @ndb.transactional(xg=True)
-    def removePhotoByKey(cls, photoKey = False, photoObject = False, eventKey):
+    def removePhotoByKey(cls, photoKey = False, photoObject = False, eventKey = None):
         
         #if not passed the actual photoObject
         if photoObject == False:
