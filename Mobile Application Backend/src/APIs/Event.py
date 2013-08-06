@@ -30,6 +30,7 @@ class eventKey(messages.Message):
 
 """
 A full event object
+Need to return full friend object with friend info
 """
 class fullEventObject(messages.Message):
 
@@ -43,7 +44,39 @@ class fullEventObject(messages.Message):
     authToken = messages.StringField(9, required = False)
     userName = messages.StringField(10, required = False)
     friendsInvited = messages.StringField(11, repeated=True)
+
+"""
+Event object return from sync
+"""
+class syncEventObject(messages.Message):
     
+    isChanged = messages.BooleanField(1, required=True)
+    name = messages.StringField(2, required=False)
+    description = messages.StringField(3, required=False)
+    eventKey = messages.StringField(4, required=False)
+    startDate = messages.StringField(5, required=False)
+    endDate = messages.StringField(6, required=False)
+    privacySetting = messages.IntegerField(7, required = False)
+    location = messages.StringField(8, required = False)
+    
+
+class returnSyncObject(messages.Message):
+    
+    isChanged = messages.BooleanField(1, required=True)
+    events = messages.MessageField(syncEventObject, 2, repeated=True, required=False)
+    errorMessage = messages.StringField(3, required=False)
+    errorNumber = messages.IntegerField(4, required=False)
+    
+
+"""
+sync request message
+"""
+class syncRequestMessage(messages.Message):
+    
+    lastSynced = messages.StringField(1, required=True)
+    authToken = messages.StringField(2, required=True)
+    userName = messages.StringField(3, required=True)
+
 """
 Used when returning events to the client application
 """
@@ -315,7 +348,11 @@ class EventApi(remote.Service):
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(events = eventInfoList)
-        
+    
+    
+    """
+    Adds a friend to invite only event
+    """
     @endpoints.method(inviteeMessage, callResult, name='Events.addInviteToEvent', path = 'addInviteToEvent', http_method='POST')
     def addInviteToEvent(self, request):
         
@@ -335,3 +372,47 @@ class EventApi(remote.Service):
         else:
             return callResult(errorNumber=12, errorMessage = "Issued Updating Database")
     
+    """
+    returns a list of events that have changed since the event given
+    """
+    @endpoints.method(syncRequestMessage, returnSyncObject, name='Events.syncEvents', path='syncEvents', http_method='POST')
+    def syncEvents(self, request):
+        
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        #Check if fields are blank
+        if request.lastSynced == "":
+            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+        
+        #gets all users events
+        eventKeyList = user_event.UserEvent.getAllUserEvents(userKey)      
+        
+        fullEventList = []
+        
+        for eventKey in eventKeyList:
+            
+            #gets event info if event has changed since last sync
+            eventInfo = event.Event.checkSync(eventKey, userKey, request.lastSynced)
+            
+            fullEvent = syncEventObject()
+            fullEvent.eventKey = eventKey
+            #events changed, update info
+            if(eventInfo[0]):
+                fullEvent.isChanged = True
+                fullEvent.name = eventInfo[1]
+                fullEvent.description = eventInfo[2]
+                fullEvent.startDate = eventInfo[3]
+                fullEvent.endDate = eventInfo[4]
+                fullEvent.privacySetting = eventInfo[5]
+                fullEvent.location = eventInfo[6]
+            
+            #no change
+            else:
+                fullEvent.isChanged = False
+            
+            fullEventList.append(fullEvent)
+        #returns full object
+        return returnSyncObject(events = fullEventList, errorNumber = 200, isChanged = True)
