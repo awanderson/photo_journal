@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
+from google.appengine.api import images
 
 class TempPhoto(ndb.Model):
     eventKey = ndb.KeyProperty(indexed = False)#event added to
@@ -19,6 +20,7 @@ class Photo(ndb.Model):
     blobKey = ndb.BlobKeyProperty()
     dateAdded = ndb.DateTimeProperty(auto_now_add = True)
     userKey = ndb.KeyProperty()#user who uploaded photo
+    servingUrl = ndb.StringProperty()
     privacySetting = ndb.IntegerProperty(choices = [0, 2])
     
     """
@@ -40,15 +42,21 @@ class Photo(ndb.Model):
     @classmethod
     @ndb.transactional(xg = True) 
     def addNewPhotoUsingTemp(cls, tempPhotoKey, blobInfoObject):   
-            
+        
+        #gets the temporary photo object in order to copy properties into the new object
         tempPhotoKeyObject = ndb.Key(urlsafe = tempPhotoKey)
         
-        tempPhotoObject = tempPhotoKeyObject.get()   
+        tempPhotoObject = tempPhotoKeyObject.get() 
         
-        newPhoto = Photo(parent = tempPhotoObject.eventKey, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
+        #gets the serving url that the image will be served at in order to store in photo object
+        servingUrl = images.get_serving_url(blobInfoObject.key())
+        
+        #create the new (permanent) photo object
+        newPhoto = Photo(parent = tempPhotoObject.eventKey, servingUrl = servingUrl, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
         
         newPhoto.put()
         
+        #delete the old temporary photo object
         tempPhotoKeyObject.delete()
     
     """
