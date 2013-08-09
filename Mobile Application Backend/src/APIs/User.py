@@ -15,6 +15,7 @@ Error Messages
 11 => Could Not Find Friend
 12 => User Is Already Registered
 13 => Invalid Username/Email And Password
+14 => Could Not Delete Auth Token
 """
 
 
@@ -38,9 +39,8 @@ class checkFriendsMessage(messages.Message):
     
 
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required=True)
     errorMessage = messages.StringField(2, required=False)
-    errorNumber = messages.IntegerField(3, required=False)
+    errorNumber = messages.IntegerField(3, required=True)
 
 #for adding and removing friends, based on key
 class friendMessage(messages.Message):
@@ -116,7 +116,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
         
         #get auth token message
-        return authTokenMessage(authToken = userData[1])
+        return authTokenMessage(authToken = userData[1], errorNumber = 200)
     
     """
     login method using password and email/username (store in userName field), returns auth token
@@ -135,7 +135,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
         
         #get auth token
-        return authTokenMessage(authToken = userData[1])
+        return authTokenMessage(authToken = userData[1], errorNumber = 200)
         
         
     """
@@ -150,7 +150,10 @@ class UserApi(remote.Service):
         #calls method in user class, returns boolean if token was deleted
         userData = user.User.logoutUser(request.userName, request.authToken)
         
-        return callResult(booleanValue=userData)
+        if(userData):
+            return callResult(errorNumber = 200)
+        else:
+            return callResult(errorNumber = 14, errorMessage = 'Could Not Delete Auth Token')
         
         
     """
@@ -160,14 +163,14 @@ class UserApi(remote.Service):
     def validateUser(self, request):
         #checks for blank fields
         if (request.userName == "") or (request.authToken == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
-        return callResult(errorNumber=200, booleanValue=True);
+        return callResult(errorNumber=200);
       
     def getSettings(self, request):
         pass
@@ -185,22 +188,22 @@ class UserApi(remote.Service):
         
         #checks for blank fields
         if (request.friendKey == "") or (request.userName == "") or (request.authToken == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
         friendExists = user.User.addFriend(userKey, request.friendKey)
         
         #friend doesn't exists, alert frontend
         if not friendExists:
-            return callResult(booleanValue = False, errorMessage = "Could Not Find Friend", errorNumber = 11)
+            return callResult(errorMessage = "Could Not Find Friend", errorNumber = 11)
         
         #returns true if added
-        return callResult(booleanValue = True)
+        return callResult(errorMessage=200)
         
         
     """
@@ -211,22 +214,22 @@ class UserApi(remote.Service):
         
         #checks for blank fields
         if (request.friendUserName == "") or (request.userName == "") or (request.authToken == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
         friendExists = user.User.addFriendFromUserName(userKey, request.friendUserName)
             
     
         if not friendExists:
-            return callResult(booleanValue = False, errorMessage = "Could Not Find Friend", errorNumber = 11)
+            return callResult(errorMessage = "Could Not Find Friend", errorNumber = 11)
         
         #returns true
-        return callResult(booleanValue = True)
+        return callResult(errorNumber = 200)
     
     
     """
@@ -237,18 +240,18 @@ class UserApi(remote.Service):
         
         #checks for blank fields
         if (request.friendKey == "") or (request.userName == "") or (request.authToken == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         #calls function from user class
         ndb.transaction(user.User.removeFriend(userKey, request.friendKey))
         
         #returns true
-        return callResult(booleanValue = True)
+        return callResult(errorNumber = 200)
         
     """
     Gets a list of all of users friends
@@ -286,7 +289,7 @@ class UserApi(remote.Service):
             fullFriend = fullFriendObject(userName = userName, email = email, name = name, key = userKey)
             friendInfoList.append(fullFriend)
         
-        return returnFriendObjects(friends = friendInfoList)
+        return returnFriendObjects(friends = friendInfoList, errorNumber = 200)
     
     
     @endpoints.method(validateUserMessage, returnNotificationObjects, name='User.getNotifications', path='getNotifications', http_method='POST')    

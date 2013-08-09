@@ -97,7 +97,6 @@ class tagMessage(messages.Message):
 
 
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required = False)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
 
@@ -138,11 +137,11 @@ class EventApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #Check if fields are blank
         if request.eventKey == "":
-            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         if event.Event.addEventToUserJournal(request.eventKey, userKey):
             return callResult(errorNumber = 200, errorMessage = "Success")
@@ -159,11 +158,11 @@ class EventApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #Check if fields are blank
         if request.name == "" or request.startDate == "" or request.endDate == "":
-            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the event
         # try:
@@ -172,7 +171,7 @@ class EventApi(remote.Service):
         #   return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
         
         #everything works and database is written to
-        return callResult(booleanValue = True)
+        return callResult(errorNumber = 200)
     
     """
     Dual Purpose Method
@@ -187,7 +186,7 @@ class EventApi(remote.Service):
         #checks if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #gets the event object from the database
         eventObject = ndb.Key(urlsafe=request.eventKey).get()
@@ -259,12 +258,12 @@ class EventApi(remote.Service):
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
             eventInfoList.append(fullEvent)
             
-        return returnEventObjects(events = eventInfoList)
+        return returnEventObjects(errorNumber = 200, events = eventInfoList)
         
     """
     Gets all the events of a specific user
     """    
-    @endpoints.method(validateUserMessage, returnEventObjects, name = 'Events.getAllUserEvents', path='getAllUserEvents', http_method='POST')
+    @endpoints.method(validateUserMessage, returnEventObjects, name = 'Event.getAllUserEvents', path='getAllUserEvents', http_method='POST')
     def getAllUserEvents(self, request):
         
         #checks for blank fields
@@ -298,9 +297,9 @@ class EventApi(remote.Service):
                 fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
                 eventInfoList.append(fullEvent)
             
-        return returnEventObjects(events = eventInfoList)
+        return returnEventObjects(errorNumber = 200, events = eventInfoList)
     
-    @endpoints.method(notificationResponse, callResult, name="Events.replyToInvitation", path="replyToInvitation")
+    @endpoints.method(notificationResponse, callResult, name="Event.replyToInvitation", path="replyToInvitation")
     def replyToInvitation(self, request):
         
         #checks for blank fields
@@ -321,7 +320,7 @@ class EventApi(remote.Service):
             return callResult(errorNumber=12, errorMessage = "Issued Updating Database")
     
         
-    @endpoints.method(searchMessage, returnEventObjects, name='Events.searchEvents', path='searchEvents', http_method='POST')
+    @endpoints.method(searchMessage, returnEventObjects, name='Event.searchEvents', path='searchEvents', http_method='POST')
     def searchEvents(self, request):
         
         #checks for blank fields
@@ -347,23 +346,23 @@ class EventApi(remote.Service):
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
             eventInfoList.append(fullEvent)
             
-        return returnEventObjects(events = eventInfoList)
+        return returnEventObjects(errorNumber = 200, events = eventInfoList)
     
     
     """
     Adds a friend to invite only event
     """
-    @endpoints.method(inviteeMessage, callResult, name='Events.addInviteToEvent', path = 'addInviteToEvent', http_method='POST')
+    @endpoints.method(inviteeMessage, callResult, name='Event.addInviteToEvent', path = 'addInviteToEvent', http_method='POST')
     def addInviteToEvent(self, request):
         
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #Check if fields are blank
         if request.friendKey == "" or request.eventKey == "":
-            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
               
         returnData = event.Event.addInviteToEvent(request.eventKey, request.friendKey)
         
@@ -375,17 +374,17 @@ class EventApi(remote.Service):
     """
     returns a list of events that have changed since the event given
     """
-    @endpoints.method(syncRequestMessage, returnSyncObject, name='Events.syncEvents', path='syncEvents', http_method='POST')
+    @endpoints.method(syncRequestMessage, returnSyncObject, name='Event.syncEvents', path='syncEvents', http_method='POST')
     def syncEvents(self, request):
         
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #Check if fields are blank
         if request.lastSynced == "":
-            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #gets all users events
         eventKeyList = user_event.UserEvent.getAllUserEvents(userKey)      
