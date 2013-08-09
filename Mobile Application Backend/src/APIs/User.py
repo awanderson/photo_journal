@@ -116,7 +116,7 @@ class UserApi(remote.Service):
             return authTokenMessage(errorMessage = userData[1], errorNumber = userData[2])
         
         #get auth token message
-        return authTokenMessage(authToken = userData[1])
+        return authTokenMessage(authToken = userData[1], errorNumber = 200, errorMessage = "Success")
     
     """
     login method using password and email/username (store in userName field), returns auth token

@@ -43,13 +43,16 @@ class Photo(ndb.Model):
     @ndb.transactional(xg = True) 
     def addNewPhotoUsingTemp(cls, tempPhotoKey, blobInfoObject):   
         
+        #start the call for getting a serving url for the photo
+        rpcObject = images.get_serving_url_async(blobInfoObject.key, secure_url = True)
+        
         #gets the temporary photo object in order to copy properties into the new object
         tempPhotoKeyObject = ndb.Key(urlsafe = tempPhotoKey)
         
         tempPhotoObject = tempPhotoKeyObject.get() 
         
         #gets the serving url that the image will be served at in order to store in photo object
-        servingUrl = images.get_serving_url(blobInfoObject.key())
+        servingUrl = rpcObject.get_result()
         
         #create the new (permanent) photo object
         newPhoto = Photo(parent = tempPhotoObject.eventKey, servingUrl = servingUrl, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
