@@ -8,6 +8,13 @@ from Classes import tag
 from Classes import user_event
 
 
+"""
+Error Messages
+
+10 => Issue Adding Tag To Event
+11 => Issued Removing Tag From Event
+"""
+
 #main message for class
 class tagMessage(messages.Message):
     tagName = messages.StringField(1, required=True)
@@ -17,7 +24,6 @@ class tagMessage(messages.Message):
 
 
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required = True)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)   
 
@@ -52,17 +58,20 @@ class TagApi(remote.Service):
         
         #checks for blank fields
         if (request.tagName == "") or (request.eventKey == "") or (request.authToken == "") or (request.userName == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         
         returnBool = tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
         
-        return callResult(booleanValue = returnBool)
+        if returnBool:
+            return callResult(errorNumber = 200)
+        else:
+            return callResult(errorNumber = 10, errorMessage = "Issue Adding Tag To Event")
     """
     Removes tag from event given event key, user auth, and a string with the tag name. If a tag has no events, then deletes tag
     """
@@ -71,16 +80,19 @@ class TagApi(remote.Service):
         
         #checks for blank fields
         if (request.tagName == "") or (request.eventKey == "") or (request.authToken == "") or (request.userName == ""):
-            return callResult(booleanValue = False, errorMessage = "Missing Required Fields", errorNumber=2)
+            return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
         
         #validates user
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorMessage = "User Validation Failed", errorNumber = 1)
+            return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         returnBool = tag.Tag.removeTagFromEvent(request.eventKey, userKey, request.tagName)
         
-        return callResult(booleanValue = returnBool)
+        if returnBool:
+            return callResult(errorNumber = 200)
+        else:
+            return callResult(errorNumber = 11, errorMessage = "Issued Removing Tag From Event")
     """
     gets all tags from a user auth, returning a list with the tag name, number of events, and a list of the events key
     """
@@ -109,5 +121,5 @@ class TagApi(remote.Service):
             
             tagRefList.append(tagRef)
             
-        return returnTagRefObjects(tagRefs = tagRefList)   
+        return returnTagRefObjects(tagRefs = tagRefList, errorNumber = 200)   
         

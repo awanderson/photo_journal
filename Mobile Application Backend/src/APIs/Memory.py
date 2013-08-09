@@ -1,7 +1,7 @@
 """
 Memory Specific Errors
 
- - None - 
+10 => Issue Adding Memory
 """
 
 from protorpc import messages
@@ -34,7 +34,6 @@ class editMemory(messages.Message):
 
 #returns the outcome of the api call, if there are errors or not
 class callResult(messages.Message):
-    booleanValue = messages.BooleanField(1, required = True)
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
 
@@ -48,17 +47,21 @@ class MemoryApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #check to make sure there is a title and content to the memory
         if request.title == "" or request.content == "":
-            return callResult(booleanValue = False, errorNumber = 2, errorMessage = "Missing Required Fields" )
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the new memory object
         boolVal = memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
         
         #return the result of the Api call 
-        return callResult(booleanValue = boolVal)
+        if boolVal:
+            return callResult(errorNumber = 200)
+        else:
+            return callResult(errorNumber = 10, errorMessage = "Issue Adding Memory")
+        
          
     
     @endpoints.method(memoryKey, callResult, name = 'Memory.removeMemory', path = 'removeMemory', http_method = 'POST')
@@ -67,13 +70,13 @@ class MemoryApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         #delete the memory from the event
         memory.Memory.removeMemoryByKey(request.memoryKey)
         
         #return the result of the Api call
-        return callResult(booleanValue = True)
+        return callResult(errorNumber = 200)
         
     @endpoints.method(editMemory, callResult, name = 'Memory.editMemory', path = 'editMemory', http_method = 'POST')
     def editMemory(self, request):
@@ -81,8 +84,8 @@ class MemoryApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return callResult(booleanValue = False, errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         memory.Memory.editMemoryByKey(request.title, request.content, request.memoryKey)
         
-        return callResult(booleanValue = True)
+        return callResult(errorNumber = 200)
