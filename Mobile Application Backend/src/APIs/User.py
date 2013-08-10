@@ -94,7 +94,7 @@ class validateUserMessage(messages.Message):
 
     
     #need a name for service, version number? and human readable description
-@endpoints.api(name='userService', version='v0.202', description='API for User methods', hostname='engaged-context-254.appspot.com')  
+@endpoints.api(name='userService', version='v0.5', description='API for User methods', hostname='engaged-context-254.appspot.com')  
 class UserApi(remote.Service):
     
     

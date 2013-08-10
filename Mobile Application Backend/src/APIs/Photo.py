@@ -24,8 +24,9 @@ class photoSpecifier(messages.Message):
 class uploadUrlGet(messages.Message):
     eventKey = messages.StringField(1, required = True)
     privacySetting = messages.IntegerField(2, default = 0, required = False)
-    authToken = messages.StringField(3, required = True)
-    userName = messages.StringField(4, required = True)
+    caption = messages.StringField(3, required = False)
+    authToken = messages.StringField(4, required = True)
+    userName = messages.StringField(5, required = True)
     
 class uploadUrlReturn(messages.Message):
     uploadUrl = messages.StringField(1, required = False)
@@ -43,7 +44,13 @@ class pinPhotoMessage(messages.Message):
     authToken = messages.StringField(3, required = True)
     userName = messages.StringField(4, required = True)
     
-@endpoints.api(name='photoService', version='v0.0116', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
+class editCaptionMessage(messages.Message):
+    photoKey = messages.StringField(1, required = True)
+    caption = messages.StringField(2, required = True)
+    authToken = messages.StringField(3, required = True)
+    userName = messages.StringField(4, required = True)
+    
+@endpoints.api(name='photoService', version='v0.5', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
     
     """
@@ -61,7 +68,7 @@ class PhotoApi(remote.Service):
         rpcObject = blobstore.create_upload_url_async('/processupload')
         
         #create the temporary object to copy over once the photo is uploaded - descendant of user
-        tempPhotoKey = photo.TempPhoto.createNewTempPhoto(request.eventKey, userKey, request.privacySetting)
+        tempPhotoKey = photo.TempPhoto.createNewTempPhoto(request.eventKey, userKey, request.privacySetting, request.caption)
         
         
         try:
@@ -128,6 +135,26 @@ class PhotoApi(remote.Service):
             
         except:
             callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+            
+    @endpoints.method(editCaptionMessage, callResult, name = 'Photo.editCaption', path = 'editCaption', http_method = 'POST')
+    def editCaption(self, request):
+        
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        #check to make sure that the caption field isnt blank
+        if (request.caption == ""):
+            return callResult(errorNumber = 2, errorMessage = "Missing Required Fields")
+        
+        #try to edit the caption and replace it with the new caption
+        try:
+            photo.Photo.editCaptionByPhotoKey(photoKey = request.photoKey, caption = request.caption)
+            return callResult(errorNumber = 200, errorMessage = "Success")
+        
+        except:
+            return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
             
         
         

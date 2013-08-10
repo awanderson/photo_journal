@@ -125,7 +125,7 @@ class notificationResponse(messages.Message):
     response = messages.BooleanField(4, required=True)
     
     
-@endpoints.api(name='eventService', version='v0.0160', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.5', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     """
@@ -194,10 +194,6 @@ class EventApi(remote.Service):
         #remove the private event and all its corresponding objects in the database
         try:
             event.Event.removeEvent(eventKey = request.eventKey, userKey = userKey, eventObject = eventObject)
-                
-            #CHANGE LOCATION BACK INTO A TRANSACTION ONCE SDK IS FIXED
-            #this is called here because there is a bug in googles code that wont allow blobinfo objects to be gotten by key within a transaction
-            photo.Photo.removeUsersPhotosFromEvent(eventKey = request.eventKey, userKey = userKey)
             
             return callResult(errorNumber = 200, errorMessage = "Success")
         
