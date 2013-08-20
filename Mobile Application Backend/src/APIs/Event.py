@@ -19,6 +19,7 @@ Class Specifc Error Messages
 10 => No Events With That Tag
 11 => No Such Token Exists
 12 => Issue Adding Event
+13 => No Event Info Exists For That Key
 """
 
 #message for specifying a specific event already in the database
@@ -44,6 +45,7 @@ class fullEventObject(messages.Message):
     authToken = messages.StringField(9, required = False)
     userName = messages.StringField(10, required = False)
     friendsInvited = messages.StringField(11, repeated=True)
+    attending = messages.BooleanField(12, required=False)
 
 """
 Event object return from sync
@@ -77,6 +79,14 @@ class syncRequestMessage(messages.Message):
     authToken = messages.StringField(2, required=True)
     userName = messages.StringField(3, required=True)
 
+"""
+get specific event info message
+"""
+class eventInfoMesssage(messages.Message):
+    eventKey = messages.StringField(1, required=True)
+    authToken = messages.StringField(2, required=True)
+    userName = messages.StringField(3, required=True)
+    
 """
 Used when returning events to the client application
 """
@@ -259,6 +269,35 @@ class EventApi(remote.Service):
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(errorNumber = 200, events = eventInfoList)
+    
+    
+    """
+    Gets event info for a given key
+    """
+    @endpoints.method(eventInfoMesssage, fullEventObject, name="Event.getEventInfo", path='getEventInfo', http_method='POST')
+    def getEventInfo(self, request):
+        
+        #checks for blank fields
+        if(request.userName=="") or (request.authToken=="" or (request.eventKey =="")):
+            return fullEventObject(errorMessage = "Missing Required Fields", errorNumber=2)  
+        
+        
+        #checks if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return fullEventObject(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        #gets event info from key
+        eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=request.eventKey))
+            
+        if eventInfo:
+            #creates protorpc object
+            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
+            
+            return fullEvent
+        
+        else:
+            return fullEventObject(errorNumber = 13, errorMessage = "No Event Info Exists For That Key");     
         
     """
     Gets all the events of a specific user
@@ -344,6 +383,12 @@ class EventApi(remote.Service):
             eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
+            #checks if user is already attending event
+            if not user_event.UserEvent.getUserEventObject(eventKey, userKey):
+                fullEvent(attending=False)
+            else:
+                fullEvent(attending=True)
+                
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(errorNumber = 200, events = eventInfoList)
@@ -388,6 +433,10 @@ class EventApi(remote.Service):
         
         #gets all users events
         eventKeyList = user_event.UserEvent.getAllUserEvents(userKey)      
+        
+        #no events, return no info
+        if(len(eventKeyList) == 0):
+            return returnEventObjects(errorNumber = 10, errorMessage="No Events From User")
         
         fullEventList = []
         

@@ -164,8 +164,6 @@ class Event(ndb.Model):
     @classmethod
     def getEventInfo(cls, eventKeyOb):   
        
-        logging.info(eventKeyOb)
-       
         eventOb = eventKeyOb.get()
        
         if(eventOb is None):

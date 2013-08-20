@@ -151,7 +151,6 @@ class UserEvent(ndb.Model):
         
         return userEventOb
     
-    
     """
     adds a photo to a users pinned photos for a specific event
     """

@@ -226,7 +226,7 @@ class User():
         #validates token, returns object if true, false if not
         userTokenOb = userOb.validate_token(userOb.key.id(), 'auth', authToken)
         
-        if userTokenOb is not None:
+        if userTokenOb:
             return userOb.key.urlsafe()
         else:
             return False
