@@ -38,7 +38,7 @@ class callResult(messages.Message):
     errorNumber = messages.IntegerField(3, required = False)
 
 
-@endpoints.api(name = 'memoryService', version = 'v0.021', description = 'API for memory methods', hostname = 'engaged-context-254.appspot.com')
+@endpoints.api(name = 'memoryService', version = 'v0.5', description = 'API for memory methods', hostname = 'engaged-context-254.appspot.com')
 class MemoryApi(remote.Service):
 
     @endpoints.method(newMemory, callResult, name = 'Memory.addMemory', path = 'addMemory', http_method = 'POST')

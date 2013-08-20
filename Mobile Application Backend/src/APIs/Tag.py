@@ -46,7 +46,7 @@ class returnTagRefObjects(messages.Message):
 
     
     
-@endpoints.api(name='tagService', version='v0.02', description='API for tag methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='tagService', version='v0.5', description='API for tag methods', hostname='engaged-context-254.appspot.com')    
 class TagApi(remote.Service):
     
     

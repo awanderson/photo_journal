@@ -2,14 +2,17 @@ from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
 from google.appengine.api import images
 
+import user_event
+
 class TempPhoto(ndb.Model):
     eventKey = ndb.KeyProperty(indexed = False)#event added to
     privacySetting = ndb.IntegerProperty(choices = [0, 2], indexed = False)
+    caption = ndb.StringProperty(indexed = False)
     
     @classmethod
-    def createNewTempPhoto(cls, eventKey, userKey, privacySetting):   
+    def createNewTempPhoto(cls, eventKey, userKey, privacySetting, caption):   
             
-        newPhoto = TempPhoto(parent = ndb.Key(urlsafe = userKey), eventKey = ndb.Key(urlsafe = eventKey), privacySetting = privacySetting)
+        newPhoto = TempPhoto(parent = ndb.Key(urlsafe = userKey), eventKey = ndb.Key(urlsafe = eventKey), privacySetting = privacySetting, caption = caption)
         tempPhotoKey = newPhoto.put()
         
         return tempPhotoKey.urlsafe()
@@ -18,9 +21,11 @@ class TempPhoto(ndb.Model):
 
 class Photo(ndb.Model):
     blobKey = ndb.BlobKeyProperty()
+    caption = ndb.StringProperty(indexed = False)
     dateAdded = ndb.DateTimeProperty(auto_now_add = True)
+    updated = ndb.DateTimeProperty(auto_now=True, indexed = False)
     userKey = ndb.KeyProperty()#user who uploaded photo
-    servingUrl = ndb.StringProperty()
+    servingUrl = ndb.StringProperty(indexed = False)
     privacySetting = ndb.IntegerProperty(choices = [0, 2])
     
     """
@@ -32,7 +37,7 @@ class Photo(ndb.Model):
         photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.userKey == ndb.Key(urlsafe = userKey)).fetch()
         
         for photoOb in photoObjects:
-            #removes the photo entitities and the blobstore entities
+            #removes the photo entities and the blobstore entities
             cls.removePhotoByKey(photoObject = photoOb, eventKey = eventKey)     
         
             
@@ -43,16 +48,17 @@ class Photo(ndb.Model):
     @ndb.transactional(xg = True) 
     def addNewPhotoUsingTemp(cls, tempPhotoKey, blobInfoObject):   
         
+        
         #gets the temporary photo object in order to copy properties into the new object
         tempPhotoKeyObject = ndb.Key(urlsafe = tempPhotoKey)
         
         tempPhotoObject = tempPhotoKeyObject.get() 
         
         #gets the serving url that the image will be served at in order to store in photo object
-        servingUrl = images.get_serving_url(blobInfoObject.key())
+        servingUrl = images.get_serving_url(blobInfoObject.key)
         
         #create the new (permanent) photo object
-        newPhoto = Photo(parent = tempPhotoObject.eventKey, servingUrl = servingUrl, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
+        newPhoto = Photo(parent = tempPhotoObject.eventKey, caption = tempPhotoObject.caption, servingUrl = servingUrl, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
         
         newPhoto.put()
         
@@ -64,7 +70,7 @@ class Photo(ndb.Model):
     can be passed either a photoKeyString or an actual Photo object
     """
     @classmethod
-    @ndb.transactional(xg=True)
+    @ndb.transactional(xg=True, propagation = ndb.TransactionOptions.ALLOWED)
     def removePhotoByKey(cls, photoKey = False, photoObject = False, eventKey = None):
         
         #if not passed the actual photoObject
@@ -74,11 +80,38 @@ class Photo(ndb.Model):
             
         #if passed the actual photoObject  
         else:
-            photoObject.key.delete()
+            photoKey = photoObject.key
+            photoKey.delete()
+            
         
         #retrieves the blobinfo object and then deletes the corresponding blob along with the blobinfo object
-        blobInfoObject = blobstore.BlobInfo.get(photoObject.blobKey)
+        blobInfoObject = cls.getBlobInfoObject(photoObject.blobKey)
         blobInfoObject.delete()
+        
+        #deletes all pinned references to a photo in all user event objects for an event
+        user_event.UserEvent.removeAllPinnedPhotosForPhoto(eventKey = eventKey, photoKey = photoKey.urlsafe())
+    
+    """
+    helper function = bug in sdk, getting blob info by key has to be non transactional -can't be gotten in a transaction
+    """
+    @classmethod
+    @ndb.non_transactional()
+    def getBlobInfoObject(cls, blobKey):
+        return blobstore.BlobInfo.get(blobKey)
+    
+    
+    """
+    edits a caption given a certain photo
+    """
+    @classmethod
+    @ndb.transactional()
+    def editCaptionByPhotoKey(cls, photoKey, caption):
+        
+        photoObject = ndb.Key(urlsafe = photoKey).get()
+        
+        photoObject.caption = caption
+        
+        photoObject.put()
         
         
         

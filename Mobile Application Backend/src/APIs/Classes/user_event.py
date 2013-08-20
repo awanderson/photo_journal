@@ -189,10 +189,10 @@ class UserEvent(ndb.Model):
     removes a photo from a users pinned photos for a specific event
     """
     @classmethod
-    @ndb.transactional(xg = True)
+    @ndb.transactional(xg = True, propogation = ndb.TransactionOptions.ALLOWED)
     def removePinnedPhoto(cls, eventKey, userKey, photoKey):
             
-        #gets the user's event sobject
+        #gets the user's event object
         userEventObject = cls.getUserEventObject(eventKey = eventKey, userKey = userKey)
             
         #try to remove the photo from the pinned photo list
@@ -209,13 +209,27 @@ class UserEvent(ndb.Model):
     """
     @classmethod
     def removeAllPinnedPhotosForPhoto(cls, eventKey, photoKey):
+        
+        #gets all user event objects with the photo key specified somewhere in the pinned photo list
         userEventObjects = cls.searchUserEventsWithPinnedPhoto(photoKey = photoKey, eventKey = eventKey)
+        
+        for userEventObject in userEventObjects:
+            
+            #try to remove the photo from the pinned photo list
+            try:
+                userEventObject.pinnedPhotoKey = utilities.removeValuesFromList(userEventObject.pinnedPhotoKey, ndb.Key(urlsafe = photoKey))
+                userEventObject.put()
+            
+                #user events has no pinned photos, so can't remove pinned photos
+            except:
+                return True
+        
     
     """
-    finds all user events with the specified photo in the pinned photos (helper event because non-transactional)
+    finds all user events with the specified photo in the pinned photos (helper event because non-transactional (not an ancestor query))
     """
     @classmethod
     @ndb.non_transactional()
     def searchUserEventsWithPinnedPhoto(cls, photoKey, eventKey):
-        return cls.query().filter(cls.eventKey == ndb.Key(urlsafe = eventKey), cls.photoKey == ndb.Key(urlsafe = photoKey)).fetch()
+        return cls.query().filter(cls.eventKey == ndb.Key(urlsafe = eventKey), cls.pinnedPhotoKey == ndb.Key(urlsafe = photoKey)).fetch()
         

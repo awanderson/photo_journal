@@ -98,7 +98,7 @@ class Event(ndb.Model):
         return True
         
     """
-    Completely removes an event that is private - not complete
+    Completely removes an event
     """
     @classmethod   
     @ndb.transactional(xg=True)
@@ -133,9 +133,8 @@ class Event(ndb.Model):
         #deletes the user event object
         user_event.UserEvent.removeUserEvent(eventKey = eventKey, userKey = userKey)
         
-        #Dont call this function here because there is a bug in google's sdk where you cant get a blobinfo object by key in a transaction - so called in the API
         #deletes any photos corresponding to the event
-        #photo.Photo.removeUsersPhotosFromEvent(eventKey = eventKey, userKey = userKey)
+        photo.Photo.removeUsersPhotosFromEvent(eventKey = eventKey, userKey = userKey)
         
         #deletes any memories related to the event
         memory.Memory.removeUserMemoriesFromEvent(eventKey = eventKey, userKey = userKey)
