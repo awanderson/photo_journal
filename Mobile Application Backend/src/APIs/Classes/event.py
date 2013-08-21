@@ -167,7 +167,7 @@ class Event(ndb.Model):
        
         if(eventOb is None):
             return False
-        return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.updated]
+        return[eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.updated, eventOb.location]
     
     """
     changes the creater of an event to the admin user

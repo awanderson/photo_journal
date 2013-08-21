@@ -263,7 +263,7 @@ class EventApi(remote.Service):
             #creates protorpc object
             
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
-                                             privacySetting = eventInfo[4], eventKey=eventKey)
+                                             privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6])
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(errorNumber = 200, events = eventInfoList)
@@ -291,7 +291,7 @@ class EventApi(remote.Service):
         if eventInfo:
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
-                                             privacySetting = eventInfo[4], eventKey=eventKey)
+                                             privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6])
             
             return fullEvent
         
@@ -333,7 +333,7 @@ class EventApi(remote.Service):
             if eventInfo:
                 #creates protorpc object
                 fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
-                                             privacySetting = eventInfo[4], eventKey=eventKey)
+                                             privacySetting = eventInfo[4], eventKey=eventKey, location=eventInfo[6])
                 eventInfoList.append(fullEvent)
             
         return returnEventObjects(errorNumber = 200, events = eventInfoList)
@@ -382,7 +382,8 @@ class EventApi(remote.Service):
             #gets event info from key
             eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
             #creates protorpc object
-            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4])
+            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4],
+                                        location=eventInfo[6])
             #checks if user is already attending event
             if not user_event.UserEvent.getUserEventObject(eventKey, userKey):
                 fullEvent(attending=False)
