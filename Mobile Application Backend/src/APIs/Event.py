@@ -287,7 +287,7 @@ class EventApi(remote.Service):
         
         #gets event info from key
         eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=request.eventKey))
-            
+        
         if eventInfo:
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],

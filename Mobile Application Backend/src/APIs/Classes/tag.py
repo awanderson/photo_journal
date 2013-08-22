@@ -2,6 +2,7 @@ from google.appengine.ext import ndb
 import logging
 import user_event
 import utilities
+from random import choice
 
 
 class Tag(ndb.Model):
@@ -10,6 +11,10 @@ class Tag(ndb.Model):
     name = ndb.StringProperty()
     number = ndb.IntegerProperty()
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
+    color = ndb.StringProperty(indexed=False)
+    
+    """Random colors to be added to each tag"""
+    colorArr = ["blue", "red", "black", "green", "yellow", "pink", "orange"]
     
     
     """
@@ -19,11 +24,11 @@ class Tag(ndb.Model):
     def createDefaultTags(cls, userKey):
         
         #create the tag objects that are defaults - all are descendants of the user key given
-        sportsTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 0, name = "Sports")
-        musicTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 1, name = "Music")
-        nightLifeTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 2, name = "Night Life")
-        holidaysTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 3, name = "Holidays")
-        festivalTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 4, name = "Festivals")
+        sportsTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 0, name = "Sports", color="blue")
+        musicTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 1, name = "Music", color="red")
+        nightLifeTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 2, name = "Night Life", color="black")
+        holidaysTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 3, name = "Holidays", color="green")
+        festivalTag = Tag(parent = ndb.Key(urlsafe=userKey), permanent = True, number = 4, name = "Festivals", color="yellow")
         
         #puts the tags in the database
         ndb.put_multi([sportsTag, musicTag, nightLifeTag, holidaysTag, festivalTag])
@@ -43,6 +48,7 @@ class Tag(ndb.Model):
             
         #create new tag if tag doesn't exists
         if not tagOb:
+            color = choice(Tag.colorArr)
             tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName)
             tagOb.put()
         
@@ -86,6 +92,16 @@ class Tag(ndb.Model):
         return True
     
     """
+    Get tag object from key
+    """
+    @classmethod
+    def getTagObjectFromKey(userKey, tagKey):
+        
+        tagKeyOb = ndb.Key(urlsafe = tagKey)
+        tagOb = tagKeyOb.get()
+        return tagOb
+    
+    """
     Gets the tag object given a string
     """
     @classmethod
@@ -115,4 +131,3 @@ class Tag(ndb.Model):
         
         tagObList = cls.query(ancestor=ndb.Key(urlsafe=userKey)).fetch()
         return tagObList
-    

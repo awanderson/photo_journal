@@ -19,13 +19,21 @@ Error Messages
 class tagMessage(messages.Message):
     tagName = messages.StringField(1, required=True)
     eventKey = messages.StringField(2, required=True)
-    authToken = messages.StringField(3, required = True)
-    userName = messages.StringField(4, required = True)
+    authToken = messages.StringField(3, required=True)
+    userName = messages.StringField(4, required=True)
+    tagColor = messages.StringField(5, required=False)
 
 
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)   
+
+#message for specifying a specific event already in the database
+class eventKey(messages.Message):
+    eventKey = messages.StringField(1, required = True)
+    userName = messages.StringField(2, required = True)
+    authToken = messages.StringField(3, required = True)
+
 
 #used on get methods when only need to validate user
 class validateUserMessage(messages.Message):
@@ -35,7 +43,8 @@ class validateUserMessage(messages.Message):
 class tagRefObject(messages.Message):
     
     tagName = messages.StringField(1 ,required=True)
-    eventCount = messages.IntegerField(2, required=True)
+    tagColor = messages.StringField(4, required=False)
+    eventCount = messages.IntegerField(2, required=False)
     eventKeys = messages.StringField(3, repeated=True)
     
 class returnTagRefObjects(messages.Message):
@@ -46,7 +55,7 @@ class returnTagRefObjects(messages.Message):
 
     
     
-@endpoints.api(name='tagService', version='v0.5', description='API for tag methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='tagService', version='v0.501', description='API for tag methods', hostname='engaged-context-254.appspot.com')    
 class TagApi(remote.Service):
     
     
@@ -117,9 +126,38 @@ class TagApi(remote.Service):
             
             eventList = user_event.UserEvent.getAllEventsFromTagOb(userKey, tagOb.key.urlsafe())
             
-            tagRef = tagRefObject(tagName = tagOb.name, eventCount = len(eventList), eventKeys = eventList)
+            tagRef = tagRefObject(tagName = tagOb.name, eventCount = len(eventList), eventKeys = eventList, tagColor = tagOb.color)
             
             tagRefList.append(tagRef)
             
         return returnTagRefObjects(tagRefs = tagRefList, errorNumber = 200)   
         
+        
+    """
+    returns a list of tags associated with event
+    """
+    @endpoints.method(eventKey, returnTagRefObjects, name="Tag.getAllTagsFromEvent", path='getAllTagsFromEvent', http_method='POST')
+    def getAllTagsFromEvent(self, request):
+        #checks for blank fields
+        if (request.authToken == "") or (request.userName == "") or (request.eventKey == ""):
+            return returnTagRefObjects(errorMessage = "Missing Required Fields", errorNumber=2)
+        
+        #validates user
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return returnTagRefObjects(errorMessage = "User Validation Failed", errorNumber = 1)
+        
+        tagRefList = []
+        
+        #gets a list of all tags objects for a given user
+        userEventOb = user_event.UserEvent.getUserEventObject(request.eventKey, userKey)
+        
+        for tagKey in userEventOb.tagKey:
+            
+            tagOb = tag.Tag.getTagObjectFromKey(tagKey)
+            
+            tagRef = tagRefObject(tagName = tagOb.name, tagColor = tagOb.color)
+            
+            tagRefList.append(tagRef)
+            
+        return returnTagRefObjects(tagRefs = tagRefList, errorNumber = 200)
