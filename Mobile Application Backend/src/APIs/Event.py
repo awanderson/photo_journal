@@ -136,7 +136,7 @@ class notificationResponse(messages.Message):
     response = messages.BooleanField(4, required=True)
     
     
-@endpoints.api(name='eventService', version='v0.503', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.504', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     """
@@ -155,7 +155,7 @@ class EventApi(remote.Service):
             return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         if event.Event.addEventToUserJournal(request.eventKey, userKey):
-            return callResult(errorNumber = 200, errorMessage = "Success")
+            return callResult(errorNumber = 200, errorMessage = "Success", eventKey=request.eventKey)
         
         else:
             return callResult(errorNumber = 12, errorMessage="Issue Adding Event", eventKey=request.eventKey)
