@@ -24,9 +24,9 @@ class Photo(ndb.Model):
     caption = ndb.StringProperty(indexed = False)
     dateAdded = ndb.DateTimeProperty(auto_now_add = True)
     updated = ndb.DateTimeProperty(auto_now=True, indexed = False)
-    userKey = ndb.KeyProperty()#user who uploaded photo
+    userKey = ndb.KeyProperty(indexed = True)#user who uploaded photo
     servingUrl = ndb.StringProperty(indexed = False)
-    privacySetting = ndb.IntegerProperty(choices = [0, 2])
+    privacySetting = ndb.IntegerProperty(choices = [0, 2], indexed = True)
     
     """
     removes all of a specified users photos from a specific event
@@ -140,7 +140,7 @@ class Photo(ndb.Model):
     @classmethod
     def getPublicPhotoUrlsForEvent(cls, eventKey, userKey):
         
-        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).filter(cls.userKey != ndb.Key(urlsafe = userKey)).fetch()
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).fetch()
         
         userEventObject = user_event.UserEvent.getUserEventObject(eventKey, userKey)
         
@@ -155,17 +155,18 @@ class Photo(ndb.Model):
         photoList = []
         
         for photo in photoObjects:
-            photoObject = []
-            photoObject.append(photo.servingUrl)
-            photoObject.append(photo.caption)
+            if (photo.userKey.urlsafe() != userKey):
+                photoObject = []
+                photoObject.append(photo.servingUrl)
+                photoObject.append(photo.caption)
             
-            isPinned = False
-            if photo.key.urlsafe() in pinnedPhotosStrings:
-                isPinned = True
+                isPinned = False
+                if photo.key.urlsafe() in pinnedPhotosStrings:
+                    isPinned = True
             
-            photoObject.append(isPinned)
+                photoObject.append(isPinned)
             
-            photoList.append(photoObject)
+                photoList.append(photoObject)
             
         return photoList
    
