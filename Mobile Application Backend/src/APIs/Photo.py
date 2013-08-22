@@ -184,13 +184,13 @@ class PhotoApi(remote.Service):
         
         photoObjectList = []
         
-        for photoObject in photoObjects:
-            photoUrl = photoObject[0]
-            photoCaption = photoObject[1]
+        for photoOb in photoObjects:
+            photoUrl = photoOb[0]
+            photoCaption = photoOb[1]
             
-            photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = False)
+            photoObForList = photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = False)
             
-            photoObjectList.append(photoObject)
+            photoObjectList.append(photoObForList)
         
         return returnPhotoObjects(photoObjects = photoObjectList, errorNumber = 200, errorMessage = "Success")
         
