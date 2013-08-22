@@ -112,8 +112,35 @@ class Photo(ndb.Model):
         photoObject.caption = caption
         
         photoObject.put()
+    
+    
+    """
+    Gets a list of all the user's photo urls based on the event key
+    """
+    @classmethod
+    def getUserPhotoUrlsForEvent(cls, eventKey, userKey):
+        
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.userKey == ndb.Key(urlsafe = userKey)).fetch()
+        
+        photoList = []
+        
+        for photo in photoObjects:
+            photoObject = []
+            photoObject.append(photo.servingUrl)
+            photoObject.append(photo.caption)
+            
+            photoList.append(photoObject)
+            
+        return photoList
         
         
+    """
+    Gets a list of all public photo urls for an event
+    """
+    @classmethod
+    def getPublicPhotoUrlsForEvent(cls, eventKey):
+        
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).fetch()
         
    
             
