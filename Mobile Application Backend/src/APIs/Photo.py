@@ -58,7 +58,7 @@ class eventSpecifier(messages.Message):
 class photoObject(messages.Message):
     servingUrl = messages.StringField(1, required = True)
     caption = messages.StringField(2, required = False)
-    isPinned = messages.StringField(3, required = False)
+    isPinned = messages.BooleanField(3, required = False)
     
 class returnPhotoObjects(messages.Message):
     photoObjects = messages.MessageField(photoObject, 1, repeated = True)
@@ -66,7 +66,7 @@ class returnPhotoObjects(messages.Message):
     errorNumber = messages.IntegerField(3, required = False)
     
     
-@endpoints.api(name='photoService', version='v0.5', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='photoService', version='v0.501', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
     
     """
@@ -188,7 +188,7 @@ class PhotoApi(remote.Service):
             photoUrl = photoObject[0]
             photoCaption = photoObject[1]
             
-            photoObject(servingUrl = photoUrl, caption = photoCaption)
+            photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = False)
             
             photoObjectList.append(photoObject)
         

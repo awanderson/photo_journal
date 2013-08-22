@@ -55,7 +55,7 @@ class Photo(ndb.Model):
         tempPhotoObject = tempPhotoKeyObject.get() 
         
         #gets the serving url that the image will be served at in order to store in photo object
-        servingUrl = images.get_serving_url(blobInfoObject.key)
+        servingUrl = images.get_serving_url(blobInfoObject)
         
         #create the new (permanent) photo object
         newPhoto = Photo(parent = tempPhotoObject.eventKey, caption = tempPhotoObject.caption, servingUrl = servingUrl, privacySetting = tempPhotoObject.privacySetting, userKey = tempPhotoKeyObject.parent(), blobKey = blobInfoObject.key())
