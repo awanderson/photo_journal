@@ -138,9 +138,9 @@ class Photo(ndb.Model):
     Gets a list of all public photo urls for an event
     """
     @classmethod
-    def getPublicPhotoUrlsForEvent(cls, eventKey):
+    def getPublicPhotoUrlsForEvent(cls, eventKey, userKey):
         
-        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).fetch()
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).filter(cls.userKey != ndb.Key(urlsafe = userKey)).fetch()
         
    
             

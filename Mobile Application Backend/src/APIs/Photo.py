@@ -194,6 +194,10 @@ class PhotoApi(remote.Service):
         
         return returnPhotoObjects(photoObjects = photoObjectList, errorNumber = 200, errorMessage = "Success")
         
+    @endpoints.method(eventSpecifier, returnPhotoObjects, name = 'Photo.getPublicPhotosForEvent', path = 'getPublicPhotosForEvent', http_method = 'POST')
+    def getPublicPhotosForEvent(self, request):
+        
+       return returnPhotoObjects()
         
         
         
