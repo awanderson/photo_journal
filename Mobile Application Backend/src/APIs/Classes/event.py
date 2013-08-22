@@ -95,7 +95,7 @@ class Event(ndb.Model):
             #saves event object with correct friendsInvited list
             eventOb.put()
             
-        return True
+        return eventKey.urlsafe()
         
     """
     Completely removes an event

@@ -109,6 +109,7 @@ class tagMessage(messages.Message):
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
+    eventKey = messages.StringField(4, required=False)
 
 class searchMessage(messages.Message):
     query = messages.StringField(1, required=True)
@@ -135,7 +136,7 @@ class notificationResponse(messages.Message):
     response = messages.BooleanField(4, required=True)
     
     
-@endpoints.api(name='eventService', version='v0.502', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.503', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     """
@@ -157,7 +158,7 @@ class EventApi(remote.Service):
             return callResult(errorNumber = 200, errorMessage = "Success")
         
         else:
-            return callResult(errorNumber = 12, errorMessage="Issue Adding Event")
+            return callResult(errorNumber = 12, errorMessage="Issue Adding Event", eventKey=request.eventKey)
        
     """
     Creates an event with the given parameters in the newEventObject message
@@ -176,12 +177,12 @@ class EventApi(remote.Service):
         
         #create the event
         # try:
-        event.Event.createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey, request.friendsInvited)
+        eventKey = event.Event.createNewEvent(request.name, request.description, request.location, request.startDate, request.endDate, request.privacySetting, userKey, request.friendsInvited)
         #except:
         #   return callResult(booleanValue = False, errorNumber = 3, errorMessage = "Database Transaction Failed")
         
         #everything works and database is written to
-        return callResult(errorNumber = 200)
+        return callResult(errorNumber = 200, eventKey=eventKey)
     
     """
     Dual Purpose Method
