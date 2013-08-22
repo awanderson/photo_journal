@@ -66,7 +66,7 @@ class returnPhotoObjects(messages.Message):
     errorNumber = messages.IntegerField(3, required = False)
     
     
-@endpoints.api(name='photoService', version='v0.501', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='photoService', version='v0.502', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
     
     """
