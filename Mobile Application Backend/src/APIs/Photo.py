@@ -50,6 +50,22 @@ class editCaptionMessage(messages.Message):
     authToken = messages.StringField(3, required = True)
     userName = messages.StringField(4, required = True)
     
+class eventSpecifier(messages.Message):
+    eventKey = messages.StringField(1, required = True)
+    authToken = messages.StringField(2, required = True)
+    userName = messages.StringField(3, required = True)
+    
+class photoObject(messages.Message):
+    servingUrl = messages.StringField(1, required = True)
+    caption = messages.StringField(2, required = False)
+    isPinned = messages.StringField(3, required = False)
+    
+class returnPhotoObjects(messages.Message):
+    photoObjects = messages.MessageField(photoObject, 1, repeated = True)
+    errorMessage = messages.StringField(2, required = False)
+    errorNumber = messages.IntegerField(3, required = False)
+    
+    
 @endpoints.api(name='photoService', version='v0.5', description='API for photo methods', hostname='engaged-context-254.appspot.com')    
 class PhotoApi(remote.Service):
     
@@ -155,8 +171,28 @@ class PhotoApi(remote.Service):
         
         except:
             return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
-            
         
+    @endpoints.method(eventSpecifier, returnPhotoObjects, name = 'Photo.getUserPhotosForEvent', path = 'getUserPhotosForEvent', http_method = 'POST' )
+    def getUserPhotosForEvent(self, request):
+        
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        photoObjects = photo.Photo.getUserPhotoUrlsForEvent(request.eventKey, userKey)
+        
+        photoObjectList = []
+        
+        for photoObject in photoObjects:
+            photoUrl = photoObject[0]
+            photoCaption = photoObject[1]
+            
+            photoObject(servingUrl = photoUrl, caption = photoCaption)
+            
+            photoObjectList.append(photoObject)
+        
+        return returnPhotoObjects(photoObjects = photoObjectList, errorNumber = 200, errorMessage = "Success")
         
         
         
