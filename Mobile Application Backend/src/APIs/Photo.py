@@ -197,7 +197,25 @@ class PhotoApi(remote.Service):
     @endpoints.method(eventSpecifier, returnPhotoObjects, name = 'Photo.getPublicPhotosForEvent', path = 'getPublicPhotosForEvent', http_method = 'POST')
     def getPublicPhotosForEvent(self, request):
         
-       return returnPhotoObjects()
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        photoObjects = photo.Photo.getPublicPhotoUrlsForEvent(eventKey = request.eventKey, userKey = userKey)
+        
+        photoObjectList = []
+        
+        for photoOb in photoObjects:
+            photoUrl = photoOb[0]
+            photoCaption = photoOb[1]
+            isPinned = photoOb[2]
+            
+            photoObForList = photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = isPinned)
+            
+            photoObjectList.append(photoObForList)
+        
+        return returnPhotoObjects(photoObjects = photoObjectList, errorNumber = 200, errorMessage = "Success")
         
         
         

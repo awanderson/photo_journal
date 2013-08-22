@@ -142,6 +142,32 @@ class Photo(ndb.Model):
         
         photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.privacySetting == 2).filter(cls.userKey != ndb.Key(urlsafe = userKey)).fetch()
         
+        userEventObject = user_event.UserEvent.getUserEventObject(eventKey, userKey)
+        
+        pinnedPhotos = userEventObject.pinnedPhotoKey
+        
+        pinnedPhotosStrings = []
+        
+        for photoKey in pinnedPhotos:
+            
+            pinnedPhotosStrings.append(photoKey.urlsafe())
+        
+        photoList = []
+        
+        for photo in photoObjects:
+            photoObject = []
+            photoObject.append(photo.servingUrl)
+            photoObject.append(photo.caption)
+            
+            isPinned = False
+            if photo.key.urlsafe() in pinnedPhotosStrings:
+                isPinned = True
+            
+            photoObject.append(isPinned)
+            
+            photoList.append(photoObject)
+            
+        return photoList
    
             
         
