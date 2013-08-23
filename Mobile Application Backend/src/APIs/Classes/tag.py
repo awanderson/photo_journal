@@ -48,8 +48,8 @@ class Tag(ndb.Model):
             
         #create new tag if tag doesn't exists
         if not tagOb:
-            color = choice(Tag.colorArr)
-            tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName)
+            tagColor = choice(Tag.colorArr)
+            tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName, color = tagColor)
             tagOb.put()
         
         
