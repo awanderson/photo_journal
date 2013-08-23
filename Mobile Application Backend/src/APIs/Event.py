@@ -292,7 +292,7 @@ class EventApi(remote.Service):
         if eventInfo:
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
-                                             privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6])
+                                             privacySetting = eventInfo[4], eventKey=request.eventKey,  location=eventInfo[6])
             
             return fullEvent
         
