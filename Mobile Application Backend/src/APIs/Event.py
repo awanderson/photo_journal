@@ -136,7 +136,7 @@ class notificationResponse(messages.Message):
     response = messages.BooleanField(4, required=True)
     
     
-@endpoints.api(name='eventService', version='v0.504', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.505', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     """
@@ -387,9 +387,9 @@ class EventApi(remote.Service):
                                         location=eventInfo[6])
             #checks if user is already attending event
             if not user_event.UserEvent.getUserEventObject(eventKey, userKey):
-                fullEvent(attending=False)
+                fullEvent.attending = False
             else:
-                fullEvent(attending=True)
+                fullEvent.attending = True
                 
             eventInfoList.append(fullEvent)
             
