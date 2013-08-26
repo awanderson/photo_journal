@@ -136,7 +136,7 @@ class notificationResponse(messages.Message):
     response = messages.BooleanField(4, required=True)
     
     
-@endpoints.api(name='eventService', version='v0.505', description='API for event methods', hostname='engaged-context-254.appspot.com')    
+@endpoints.api(name='eventService', version='v0.504', description='API for event methods', hostname='engaged-context-254.appspot.com')    
 class EventApi(remote.Service):
     
     """
@@ -384,7 +384,7 @@ class EventApi(remote.Service):
             eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3], privacySetting = eventInfo[4],
-                                        location=eventInfo[6])
+                                        location=eventInfo[6], eventKey=eventKey)
             #checks if user is already attending event
             if not user_event.UserEvent.getUserEventObject(eventKey, userKey):
                 fullEvent.attending = False
