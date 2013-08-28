@@ -18,6 +18,7 @@ class newMemory(messages.Message):
     eventKey = messages.StringField(3, required = True)
     userName = messages.StringField(4, required = True)
     authToken = messages.StringField(5, required = True)
+    privacy = messages.IntegerField(6, required = False)
 
 #specifies a specific memory
 class memoryKey(messages.Message):
@@ -36,6 +37,21 @@ class editMemory(messages.Message):
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
+
+class fullMemory(messages.Message):
+    title = messages.StringField(1, required = True)
+    content = messages.StringField(2, required = True)
+    created = messages.StringField(3, required = True)
+    
+class returnMemories(messages.Message):
+    memories = messages.MessageField(fullMemory, 1, repeated=True, required=False)
+    errorMessage = messages.StringField(2, required = False)
+    errorNumber = messages.IntegerField(3, required = False)
+
+class eventSpecifier(messages.Message):
+    eventKey = messages.StringField(1, required = True)
+    userName = messages.StringField(2, required = True)
+    authToken = messages.StringField(3, required = True)
 
 
 @endpoints.api(name = 'memoryService', version = 'v0.5', description = 'API for memory methods', hostname = 'engaged-context-254.appspot.com')
@@ -89,3 +105,27 @@ class MemoryApi(remote.Service):
         memory.Memory.editMemoryByKey(request.title, request.content, request.memoryKey)
         
         return callResult(errorNumber = 200)
+
+    @endpoints.method(eventSpecifier, returnMemories, name="Memory.getUserMemoriesForEvent", path="getUserMemoriesForEvent", http_method="POST")
+    def getUserMemoriesForEvent(self, request):
+        #check if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
+        memoryObjects = memory.Memory.getMemoriesByEvent(request.eventKey, userKey);	
+        memoryObjectList = []
+        
+        for memoryOb in memoryObjects:
+            memoryTitle = memoryOb[0]
+            memoryContent = memoryOb[1]
+            memoryCreated = memoryOb[2]
+            
+            memoryObForList = fullMemory(title = memoryTitle, content = memoryContent, created = memoryCreated);
+             
+            memoryObjectList.append(memoryObForList);
+        
+        return returnMemories(memories = memoryObjectList, errorNumber = 200)
+    
+    @endpoints.method(eventSpecifier, returnMemories, name="Memory.getPublicMemoriesForEvent", path="getPublicMemoriesForEvent", http_method="POST")
+    def getPublicMemoriesForEvent(self, request):
+        pass

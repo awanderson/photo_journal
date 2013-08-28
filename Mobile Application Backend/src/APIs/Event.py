@@ -20,6 +20,7 @@ Class Specifc Error Messages
 11 => No Such Token Exists
 12 => Issue Adding Event
 13 => No Event Info Exists For That Key
+14 => Can Only Edit Private Events
 """
 
 #message for specifying a specific event already in the database
@@ -44,8 +45,10 @@ class fullEventObject(messages.Message):
     eventKey = messages.StringField(8, required = False)
     authToken = messages.StringField(9, required = False)
     userName = messages.StringField(10, required = False)
-    friendsInvited = messages.StringField(11, repeated=True)
+    friendsInvited = messages.StringField(11, repeated=True, required=False)
     attending = messages.BooleanField(12, required=False)
+    errorNumber = messages.IntegerField(13, required=False)
+    errorMessage = messages.IntegerField(14, required=False)
 
 """
 Event object return from sync
@@ -222,7 +225,21 @@ class EventApi(remote.Service):
        # return fullEventObject(name = eventObject.name, startDate = eventObject.startDate, endDate = eventObject.endDate, description = eventObject.description, location = eventObject.location, privacySetting = event.Event().convertPrivacyIntegerToEnum(eventObject.privacySetting), creatorId = eventObject.creatorId, eventId = eventId)
         
    
-   
+    @endpoints.method(fullEventObject, callResult, name="Event.editEvent", path="editEvent", http_method="POST")
+    def editEvent(self, request):
+        #checks if the user is validated
+        userKey = user.User.validateUser(request.userName, request.authToken)
+        if not userKey:
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
+        
+        returnBool = event.Event.editEvent(request.eventKey, request.name, request.startDate, request.endDate, request.location, request.description)
+        
+        if(returnBool):
+            return callResult(errorNumber = 200)
+        
+        else:
+            return callResult(errorNumber = 14, errorMessage = "Can Only Edit Private Events")
+        
     """
     Gets all the events with info for a tag string
     """
@@ -291,7 +308,7 @@ class EventApi(remote.Service):
         
         if eventInfo:
             #creates protorpc object
-            fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
+            fullEvent = fullEventObject(errorNumber = 200, name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
                                              privacySetting = eventInfo[4], eventKey=request.eventKey,  location=eventInfo[6])
             
             return fullEvent

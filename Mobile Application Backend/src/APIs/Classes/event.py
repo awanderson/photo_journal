@@ -157,6 +157,25 @@ class Event(ndb.Model):
         eventKey = ndb.Key('Event', eventId)
         return eventKey.get()
      
+    @classmethod
+    def editEvent(cls, eventKey, title, startDate, endDate, location, description):
+        
+        eventOb = ndb.Key(urlsafe = eventKey).get();
+        """Can only edit private events"""
+        if(eventOb.privacySetting != 0):
+            return False
+        
+        eventOb.name = title
+        eventOb.startDate = utilities.convertStringToDate(startDate)
+        eventOb.endDate = utilities.convertStringToDate(endDate)
+        if(location != ""):
+            eventOb.location = location
+        if(description != ""):
+            eventOb.description = description
+        
+        eventOb.put()
+        return True
+        
     """
     gets info for event given an event key object
     """

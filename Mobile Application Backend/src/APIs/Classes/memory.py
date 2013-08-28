@@ -1,4 +1,6 @@
 from google.appengine.ext import ndb
+import utilities
+
 
 class Memory(ndb.Model):
     
@@ -13,12 +15,6 @@ class Memory(ndb.Model):
     """
     @classmethod
     def addMemoryToEvent(cls, title, content, eventKey, userKey):
-        
-        #makes sure user doesn't already have a memory for given event
-        memoryOb = cls.getMemoryByEvent(eventKey, userKey)
-        
-        if memoryOb is not None:
-            return False
         
         #create the new memory object to put in the databse, linked to the event and creator key
         newMemory = Memory(title = title, content = content, parent = ndb.Key(urlsafe = eventKey), userKey = ndb.Key(urlsafe = userKey))
@@ -83,4 +79,23 @@ class Memory(ndb.Model):
         
         return [memoryOb.title, memoryOb.content, memoryOb.key.urlsafe()]
             
+    """
+    Gets a list of memories for an event
+    """
+    @classmethod
+    def getMemoriesByEvent(cls, eventKey, userKey):
+        
+        memoryObList = cls.query(ancestor = ndb.Key(urlsafe=eventKey)).filter(Memory.userKey == ndb.Key(urlsafe = userKey)).fetch()
+         
+        memoryList = []
+        
+        for memory in memoryObList:
+            memoryOb = []
+            memoryOb.append(memory.title)
+            memoryOb.append(memory.content)
+            memoryOb.append(utilities.convertDateToString(memory.created))
+            
+            memoryList.append(memoryOb)
+            
+        return memoryList
         

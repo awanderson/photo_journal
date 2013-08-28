@@ -19,6 +19,12 @@ Error Messages
 """
 
 
+class changePasswordMessage(messages.Message):
+    userName = messages.StringField(1, required=True)
+    authToken = messages.StringField(2, required=True)
+    oldPassword = messages.StringField(3, required=False)
+    newPassword = messages.StringField(4, required=False)
+
 #this is the actual object (message) that we will be transferring
 class userMessage(messages.Message):
     userName = messages.StringField(1, required=False)
@@ -329,9 +335,14 @@ class UserApi(remote.Service):
             
         return returnNotificationObjects(notifications = notificationInfoList, errorNumber=200)
     
+    @endpoints.method(changePasswordMessage, callResult, name='User.changePassword', path='changePassword', http_method='POST')
+    def changePasswordMessage(self, request):
+        pass
     def checkUserExist(self):
         pass
         #helper function to check each user - actually in the class
     def checkUsersExist(self):
         pass
         #use a repeated message field... i think
+        
+    
