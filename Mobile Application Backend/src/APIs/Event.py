@@ -63,6 +63,7 @@ class syncEventObject(messages.Message):
     endDate = messages.StringField(6, required=False)
     privacySetting = messages.IntegerField(7, required = False)
     location = messages.StringField(8, required = False)
+    randomPhotoUrl = messages.StringField(9, required = False)
     
 
 class returnSyncObject(messages.Message):

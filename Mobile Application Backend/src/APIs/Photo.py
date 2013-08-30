@@ -59,6 +59,8 @@ class photoObject(messages.Message):
     servingUrl = messages.StringField(1, required = True)
     caption = messages.StringField(2, required = False)
     isPinned = messages.BooleanField(3, required = False)
+    pinDate = messages.StringField(4, required = False)
+    dateAdded = messages.StringField(5, required = False)
     
 class returnPhotoObjects(messages.Message):
     photoObjects = messages.MessageField(photoObject, 1, repeated = True)
@@ -187,8 +189,9 @@ class PhotoApi(remote.Service):
         for photoOb in photoObjects:
             photoUrl = photoOb[0]
             photoCaption = photoOb[1]
+            dateAdded = photoOb[2]
             
-            photoObForList = photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = False)
+            photoObForList = photoObject(servingUrl = photoUrl, caption = photoCaption, isPinned = False, dateAdded = dateAdded)
             
             photoObjectList.append(photoObForList)
         

@@ -128,6 +128,7 @@ class Photo(ndb.Model):
             photoObject = []
             photoObject.append(photo.servingUrl)
             photoObject.append(photo.caption)
+            photoObject.append(photo.dateAdded)
             
             photoList.append(photoObject)
             
