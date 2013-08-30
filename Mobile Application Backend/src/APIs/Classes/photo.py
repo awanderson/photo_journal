@@ -3,6 +3,7 @@ from google.appengine.ext import blobstore
 from google.appengine.api import images
 
 import user_event
+import utilities
 
 class TempPhoto(ndb.Model):
     eventKey = ndb.KeyProperty(indexed = False)#event added to
@@ -128,7 +129,8 @@ class Photo(ndb.Model):
             photoObject = []
             photoObject.append(photo.servingUrl)
             photoObject.append(photo.caption)
-            photoObject.append(photo.dateAdded)
+            stringDateAdded = utilities.convertDateToString(photo.dateAdded)
+            photoObject.append(stringDateAdded)
             
             photoList.append(photoObject)
             

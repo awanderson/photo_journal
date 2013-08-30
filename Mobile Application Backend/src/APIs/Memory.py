@@ -42,6 +42,7 @@ class fullMemory(messages.Message):
     title = messages.StringField(1, required = True)
     content = messages.StringField(2, required = True)
     created = messages.StringField(3, required = True)
+    memoryKey = messages.StringField(4, required = True)
     
 class returnMemories(messages.Message):
     memories = messages.MessageField(fullMemory, 1, repeated=True, required=False)
@@ -54,7 +55,7 @@ class eventSpecifier(messages.Message):
     authToken = messages.StringField(3, required = True)
 
 
-@endpoints.api(name = 'memoryService', version = 'v0.5', description = 'API for memory methods', hostname = 'engaged-context-254.appspot.com')
+@endpoints.api(name = 'memoryService', version = 'v0.501', description = 'API for memory methods', hostname = 'engaged-context-254.appspot.com')
 class MemoryApi(remote.Service):
 
     @endpoints.method(newMemory, callResult, name = 'Memory.addMemory', path = 'addMemory', http_method = 'POST')
@@ -119,8 +120,9 @@ class MemoryApi(remote.Service):
             memoryTitle = memoryOb[0]
             memoryContent = memoryOb[1]
             memoryCreated = memoryOb[2]
+            memoryKey = memoryOb[3]
             
-            memoryObForList = fullMemory(title = memoryTitle, content = memoryContent, created = memoryCreated);
+            memoryObForList = fullMemory(title = memoryTitle, content = memoryContent, created = memoryCreated, memoryKey = memoryKey);
              
             memoryObjectList.append(memoryObForList);
         

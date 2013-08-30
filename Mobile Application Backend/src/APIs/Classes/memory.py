@@ -94,6 +94,7 @@ class Memory(ndb.Model):
             memoryOb.append(memory.title)
             memoryOb.append(memory.content)
             memoryOb.append(utilities.convertDateToString(memory.created))
+            memoryOb.append(memory.key.urlsafe())
             
             memoryList.append(memoryOb)
             
