@@ -131,6 +131,7 @@ class Photo(ndb.Model):
             photoObject.append(photo.caption)
             stringDateAdded = utilities.convertDateToString(photo.dateAdded)
             photoObject.append(stringDateAdded)
+            photoObject.append(photo.key.urlsafe())
             
             photoList.append(photoObject)
             
@@ -168,7 +169,8 @@ class Photo(ndb.Model):
                     isPinned = True
             
                 photoObject.append(isPinned)
-            
+                photoObject.append(photo.key.urlsafe())
+                
                 photoList.append(photoObject)
             
         return photoList
