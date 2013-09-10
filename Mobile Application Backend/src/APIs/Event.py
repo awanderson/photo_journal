@@ -3,6 +3,7 @@ from protorpc import messages
 from protorpc import remote
 from google.appengine.ext import endpoints
 import logging
+from random import choice
 
 from Classes import event
 from Classes import user
@@ -458,6 +459,7 @@ class EventApi(remote.Service):
         if(len(eventKeyList) == 0):
             return returnEventObjects(errorNumber = 10, errorMessage="No Events From User")
         
+        
         fullEventList = []
         
         for eventKey in eventKeyList:
@@ -476,6 +478,18 @@ class EventApi(remote.Service):
                 fullEvent.endDate = eventInfo[4]
                 fullEvent.privacySetting = eventInfo[5]
                 fullEvent.location = eventInfo[6]
+                
+                #gets random photo
+                userPhotoObjects = photo.Photo.getUserPhotoUrlsForEvent(eventKey, userKey)
+                publicPhotoObjects = photo.Photo.getPublicPhotoUrlsForEvent(eventKey, userKey)
+                photoObjects = userPhotoObjects + publicPhotoObjects
+                if photoObjects:
+                    photoOb = choice(photoObjects)
+                    photoUrl = photoOb[0]
+                    fullEvent.randomPhotoUrl = photoUrl
+                    logging.info('photoUrl='+photoUrl);
+                
+                
             
             #no change
             else:

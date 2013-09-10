@@ -146,14 +146,14 @@ class PhotoApi(remote.Service):
         #check if the user is validated
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
-            return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
+            return callResult(errorNumber = 1, errorMessage = "User Validation Failed")
         
         try:
             photo.Photo.removePhotoByKey(request.photoKey)
-            callResult(errorNumber = 200, errorMessage = "Success")
+            return callResult(errorNumber = 200, errorMessage = "Success")
             
         except:
-            callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+            return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
             
     @endpoints.method(editCaptionMessage, callResult, name = 'Photo.editCaption', path = 'editCaption', http_method = 'POST')
     def editCaption(self, request):

@@ -270,8 +270,8 @@ class Event(ndb.Model):
         lastSynced = utilities.convertStringToDate(lastSynced)
         
         #event out of date, return information
-        if(eventOb.updated > lastSynced):
-            return [True, eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.location]
+        #if(eventOb.updated > lastSynced):
+        return [True, eventOb.name, eventOb.description, utilities.convertDateToString(eventOb.startDate), utilities.convertDateToString(eventOb.endDate), eventOb.privacySetting, eventOb.location]
         
-        else:
-            return [False]   
+        #else:
+        #    return [False]   
