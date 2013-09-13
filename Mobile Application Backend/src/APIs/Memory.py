@@ -74,7 +74,7 @@ class MemoryApi(remote.Service):
         #create the new memory object
         memoryKey = memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
         
-        return callResult(errorNumber = 200, errorMessage = "Issue Adding Memory", memorykey = memoryKey)
+        return callResult(errorNumber = 200, errorMessage = "Issue Adding Memory", memoryKey = memoryKey)
         
          
     

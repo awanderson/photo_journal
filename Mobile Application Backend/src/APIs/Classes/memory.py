@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 import utilities
+import logging
 
 
 class Memory(ndb.Model):
@@ -19,7 +20,6 @@ class Memory(ndb.Model):
         #create the new memory object to put in the databse, linked to the event and creator key
         newMemory = Memory(title = title, content = content, parent = ndb.Key(urlsafe = eventKey), userKey = ndb.Key(urlsafe = userKey))
         memoryKey = newMemory.put()
-        
         return memoryKey.urlsafe()
         
     
