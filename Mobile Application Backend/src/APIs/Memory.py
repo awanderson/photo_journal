@@ -37,7 +37,7 @@ class editMemory(messages.Message):
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
-    memoryKey = messages.StringField(3, required = False)
+    memoryKey = messages.StringField(4, required = False)
 
 class fullMemory(messages.Message):
     title = messages.StringField(1, required = True)
