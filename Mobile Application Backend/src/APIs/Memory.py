@@ -37,6 +37,7 @@ class editMemory(messages.Message):
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
     errorNumber = messages.IntegerField(3, required = False)
+    memoryKey = messages.StringField(3, required = False)
 
 class fullMemory(messages.Message):
     title = messages.StringField(1, required = True)
@@ -71,13 +72,9 @@ class MemoryApi(remote.Service):
             return callResult(errorNumber = 2, errorMessage = "Missing Required Fields" )
         
         #create the new memory object
-        boolVal = memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
+        memoryKey = memory.Memory.addMemoryToEvent(request.title, request.content, request.eventKey, userKey)
         
-        #return the result of the Api call 
-        if boolVal:
-            return callResult(errorNumber = 200)
-        else:
-            return callResult(errorNumber = 10, errorMessage = "Issue Adding Memory")
+        return callResult(errorNumber = 200, errorMessage = "Issue Adding Memory", memorykey = memoryKey)
         
          
     
