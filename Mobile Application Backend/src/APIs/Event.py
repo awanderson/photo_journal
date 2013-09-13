@@ -457,7 +457,7 @@ class EventApi(remote.Service):
         
         #no events, return no info
         if(len(eventKeyList) == 0):
-            return returnEventObjects(errorNumber = 10, errorMessage="No Events From User")
+            return returnSyncObject(errorNumber = 10, errorMessage="No Events From User", isChanged=True)
         
         
         fullEventList = []
