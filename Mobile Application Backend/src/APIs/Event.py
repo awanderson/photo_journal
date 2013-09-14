@@ -50,6 +50,7 @@ class fullEventObject(messages.Message):
     attending = messages.BooleanField(12, required=False)
     errorNumber = messages.IntegerField(13, required=False)
     errorMessage = messages.IntegerField(14, required=False)
+    randomPhotoUrl = messages.StringField(15, required = False)
 
 """
 Event object return from sync
@@ -280,10 +281,18 @@ class EventApi(remote.Service):
             
             #gets event info from key
             eventInfo = event.Event.getEventInfo(ndb.Key(urlsafe=eventKey))
-            #creates protorpc object
             
+            #gets random photo
+            userPhotoObjects = photo.Photo.getUserPhotoUrlsForEvent(eventKey, userKey)
+            publicPhotoObjects = photo.Photo.getPublicPhotoUrlsForEvent(eventKey, userKey)
+            photoObjects = userPhotoObjects + publicPhotoObjects
+            if photoObjects:
+                photoOb = choice(photoObjects)
+                photoUrl = photoOb[0]
+            
+            #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
-                                             privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6])
+                                             privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6], randomPhotoUrl = photoUrl)
             eventInfoList.append(fullEvent)
             
         return returnEventObjects(errorNumber = 200, events = eventInfoList)
@@ -487,7 +496,6 @@ class EventApi(remote.Service):
                     photoOb = choice(photoObjects)
                     photoUrl = photoOb[0]
                     fullEvent.randomPhotoUrl = photoUrl
-                    logging.info('photoUrl='+photoUrl);
                 
                 
             
