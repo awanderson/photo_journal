@@ -157,7 +157,7 @@ class TagApi(remote.Service):
             
             tagOb = tag.Tag.getTagObjectFromKey(tagKey.urlsafe())
             
-            tagRef = tagRefObject(tagName = tagOb.name, tagColor = tagOb.color)
+            tagRef = tagRefObject(tagName = tagOb.name, tagColor = tagOb.color, eventCount = tagOb.eventCount)
             
             tagRefList.append(tagRef)
             
