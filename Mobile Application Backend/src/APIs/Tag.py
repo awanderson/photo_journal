@@ -79,9 +79,9 @@ class TagApi(remote.Service):
         returnArray = tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
         
         if returnArray[0]:
-            return callResult(errorNumber = 200)
+            return callResult(errorNumber = 200, errorMessage = "Success", tagColor = returnArray[1])
         else:
-            return callResult(errorNumber = 10, errorMessage = "Issue Adding Tag To Event", tagColor = returnArray[1])
+            return callResult(errorNumber = 10, errorMessage = "Issue Adding Tag To Event")
     """
     Removes tag from event given event key, user auth, and a string with the tag name. If a tag has no events, then deletes tag
     """
