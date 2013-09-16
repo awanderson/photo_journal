@@ -286,10 +286,11 @@ class EventApi(remote.Service):
             userPhotoObjects = photo.Photo.getUserPhotoUrlsForEvent(eventKey, userKey)
             publicPhotoObjects = photo.Photo.getPublicPhotoUrlsForEvent(eventKey, userKey)
             photoObjects = userPhotoObjects + publicPhotoObjects
+            photoUrl = None
             if photoObjects:
                 photoOb = choice(photoObjects)
                 photoUrl = photoOb[0]
-            
+                
             #creates protorpc object
             fullEvent = fullEventObject(name=eventInfo[0], description=eventInfo[1], startDate=eventInfo[2], endDate = eventInfo[3],
                                              privacySetting = eventInfo[4], eventKey=eventKey,  location=eventInfo[6], randomPhotoUrl = photoUrl)

@@ -26,7 +26,8 @@ class tagMessage(messages.Message):
 
 class callResult(messages.Message):
     errorMessage = messages.StringField(2, required = False)
-    errorNumber = messages.IntegerField(3, required = False)   
+    errorNumber = messages.IntegerField(3, required = False)
+    tagColor = messages.StringField(4, required = False) 
 
 #message for specifying a specific event already in the database
 class eventKey(messages.Message):
@@ -75,12 +76,12 @@ class TagApi(remote.Service):
             return callResult(errorMessage = "User Validation Failed", errorNumber = 1)
         
         
-        returnBool = tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
+        returnArray = tag.Tag.addTagToEvent(request.eventKey, userKey, request.tagName)
         
-        if returnBool:
+        if returnArray[0]:
             return callResult(errorNumber = 200)
         else:
-            return callResult(errorNumber = 10, errorMessage = "Issue Adding Tag To Event")
+            return callResult(errorNumber = 10, errorMessage = "Issue Adding Tag To Event", tagColor = returnArray[1])
     """
     Removes tag from event given event key, user auth, and a string with the tag name. If a tag has no events, then deletes tag
     """

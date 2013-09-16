@@ -47,6 +47,7 @@ class Tag(ndb.Model):
         tagOb = cls.getTagObjectFromString(userKey, tagName)
             
         #create new tag if tag doesn't exists
+        tagColor = "Tag Exists" #returns this in the API call if the tag exists so it didnt need to add a new color to the tag
         if not tagOb:
             tagColor = choice(Tag.colorArr)
             tagOb = Tag(parent = ndb.Key(urlsafe=userKey), permanent = False, name=tagName, color = tagColor)
@@ -55,8 +56,13 @@ class Tag(ndb.Model):
         
         tagKey = tagOb.key.urlsafe()
         
+        returnArray = []
+        
+        returnArray.append(user_event.UserEvent.addTagObToEvent(eventKey, userKey, tagKey))
+        returnArray.append(tagColor)
+            
         #adds tag to userEvent
-        return user_event.UserEvent.addTagObToEvent(eventKey, userKey, tagKey)
+        return returnArray
         
     
     """
