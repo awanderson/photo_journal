@@ -74,7 +74,7 @@ class Tag(ndb.Model):
         #clean tag name
         tagName = utilities.cleanString(tagName)
         
-        tagOb = cls.getTagObjectFromString(userKey, tagName)
+        tagOb = cls.getTagObjectForEventFromString(userKey, tagName)
         
         #no tag by tagName
         if not tagOb:
@@ -98,17 +98,38 @@ class Tag(ndb.Model):
         return True
     
     """
-    Get tag object from key
+    Get tag object from key 
     """
     @classmethod
-    def getTagObjectFromKey(userKey, tagKey):
+    def getTagObjectFromKey(cls, userKey, tagKey):
         
         tagKeyOb = ndb.Key(urlsafe = tagKey)
         tagOb = tagKeyOb.get()
         return tagOb
     
     """
-    Gets the tag object given a string
+    Get a tag object, for a specific event if it exists - not in general for the user - just if it exists on that event
+    """
+    @classmethod
+    def getTagObjectForEventFromString(cls, userKey, tagName, eventKey):
+        
+        #clean tag name
+        tagName = utilities.cleanString(tagName)
+        
+        tagOb = None
+        
+        #tries to find the existing tag with the tag name for the event
+        tagObList = cls.query(ancestor = ndb.Key(urlsafe =userKey)).filter(cls.name == tagName).filter(cls.eventKey == ndb.Key(urlsafe = eventKey))
+        for tagOb in tagObList:
+            tagOb = tagOb
+            
+        if tagOb is None:
+            return False
+        
+        return tagOb
+    
+    """
+    Gets the tag object given a string - doesn't matter the event - only if it exists in general for the user
     """
     @classmethod
     def getTagObjectFromString(cls, userKey, tagName):
