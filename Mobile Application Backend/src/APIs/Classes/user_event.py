@@ -115,6 +115,28 @@ class UserEvent(ndb.Model):
         return eventKeyList
     
     """
+    Returns the user event for the specific event with the tag key, returns False if that event does not have the tag on it
+    """
+    @classmethod
+    def getUserEventWithTagObAndEventKey(cls, userKey, eventKey, tagKey):
+        
+        userEventObject = None
+        
+        #gets the userEvent Object for the event with the event key that has the tag key
+        userEventObjects = cls.query(ancestor = ndb.Key(urlsafe = userKey)).filter(cls.tagKey == ndb.Key(urlsafe = tagKey)).filter(cls.eventKey == ndb.Key(urlsafe = eventKey)).fetch()
+       
+        for userEventObject in userEventObjects:
+            userEventObject = userEventObject
+            
+            
+        if userEventObject is None:
+            return False
+       
+        return userEventObject     
+            
+    
+        
+    """
     Returns list of all events keys strings for a specific user and tag
     """
     @classmethod

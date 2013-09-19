@@ -74,6 +74,12 @@ class Tag(ndb.Model):
         #clean tag name
         tagName = utilities.cleanString(tagName)
         
+        #Use this to check if the tag exists on that specific event that is needed
+        userEventOb = cls.getUserEventForEventFromTagName(userKey, tagName, eventKey)
+        
+        if not userEventOb:
+            return False
+        
         tagOb = cls.getTagObjectForEventFromString(userKey, tagName)
         
         #no tag by tagName
@@ -106,6 +112,26 @@ class Tag(ndb.Model):
         tagKeyOb = ndb.Key(urlsafe = tagKey)
         tagOb = tagKeyOb.get()
         return tagOb
+    
+    """
+    Get a user event object, for a specific event if it exists - not in general for the user - just the user event object if the tag exists on that event
+    """
+    @classmethod
+    def getUserEventForEventFromTagName(cls, userKey, tagName, eventKey):
+        
+        #clean tag name
+        tagName = utilities.cleanString(tagName)
+        
+        tagOb = cls.getTagObjectFromString(userKey, tagName)
+        
+        #tries to find the existing tag with the tag name for the event
+
+        userEventOb = user_event.UserEvent.getUserEventWithTagObAndEventKey(userKey = userKey, tagKey = tagOb.key.urlsafe(), eventKey = eventKey)
+        
+        if not userEventOb:
+            return False
+        
+        return userEventOb
     
     """
     Get a tag object, for a specific event if it exists - not in general for the user - just if it exists on that event
