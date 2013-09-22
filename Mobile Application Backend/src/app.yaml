@@ -15,7 +15,12 @@ handlers:
  
 - url: /uploadimage
   script: process_image_blobstore.application
+
+- url: /privacypolicy
+  script: privacy_policy.application
   
+- url: /termsofservice
+  script: terms_of_service.application
 
 libraries:
 - name: webapp2
