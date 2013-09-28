@@ -106,7 +106,7 @@ class Event(ndb.Model):
         
         userKeyObject = ndb.Key(urlsafe = userKey)
         
-        if eventObject.privacySetting == 0:
+        if eventObject.privacySetting == 0:#if private event
             #removes the main event object
             cls.removeEventBykey(eventKey)
         
@@ -114,7 +114,7 @@ class Event(ndb.Model):
             #removes the users key from the event's creator key field
             cls.changeCreatorToAdmin(eventKey = eventKey)
         
-        elif eventObject.privacySetting == 2 and eventObject.creatorKey == userKeyObject:
+        elif eventObject.privacySetting == 2 and eventObject.creatorKey == userKeyObject:#if public event
             #removes the users key from the event's creator key field
             cls.changeCreatorToAdmin(eventKey = eventKey)
             
@@ -134,15 +134,19 @@ class Event(ndb.Model):
         user_event.UserEvent.removeUserEvent(eventKey = eventKey, userKey = userKey)
         
         #deletes any photos corresponding to the event
-        photo.Photo.removeUsersPhotosFromEvent(eventKey = eventKey, userKey = userKey)
+        if eventObject.privacySetting == 0:#if private event - just delete all photos that correspond with that event for the user
+            photo.Photo.removeUsersPhotosFromEvent(eventKey = eventKey, userKey = userKey)
+        if eventObject.privacySetting == 2:#if public event - just delete the private photos that correspond with that event for the user
+            photo.Photo.removeUsersPrivatePhotosFromEvent(eventKey = eventKey, userKey = userKey)
+        
         
         #deletes any memories related to the event
         memory.Memory.removeUserMemoriesFromEvent(eventKey = eventKey, userKey = userKey)
         
-        if eventObject.creatorKey == userKeyObject:
+        #if eventObject.creatorKey == userKeyObject:
             
             #deletes search document
-            search.DocumentManager.removeEventDoc(eventKey = eventKey)       
+            #search.DocumentManager.removeEventDoc(eventKey = eventKey)       
         
     
     @classmethod

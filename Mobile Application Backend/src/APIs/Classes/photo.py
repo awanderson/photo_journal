@@ -39,9 +39,20 @@ class Photo(ndb.Model):
         
         for photoOb in photoObjects:
             #removes the photo entities and the blobstore entities
-            cls.removePhotoByKey(photoObject = photoOb, eventKey = eventKey)     
-        
+            cls.removePhotoByKey(photoObject = photoOb, eventKey = eventKey)   
             
+    """
+    removes all of the users  
+    """
+    @classmethod
+    def removeUsersPrivatePhotosFromEvent(cls, eventKey, userKey):
+        
+        photoObjects = cls.query(ancestor = ndb.Key(urlsafe = eventKey)).filter(cls.userKey == ndb.Key(urlsafe = userKey)).filter(cls.privacySetting == 0).fetch()
+        
+        for photoOb in photoObjects:
+            #removes the photo entities and blobstore entities
+            cls.removePhotoByKey(photoObject = photoOb, eventKey = eventKey)
+           
     """
     adds a new photo to the database and links everything together given the blobinfo object and the temp photo object key
     """
@@ -74,6 +85,7 @@ class Photo(ndb.Model):
     @ndb.transactional(xg=True, propagation = ndb.TransactionOptions.ALLOWED)
     def removePhotoByKey(cls, photoKey = False, photoObject = False, eventKey = None):
         
+        photoObject
         #if not passed the actual photoObject
         if photoObject == False:
             #gets the photo object from the database and then deletes it
