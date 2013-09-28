@@ -4,6 +4,7 @@ from google.appengine.api import images
 
 import user_event
 import utilities
+import logging
 
 class TempPhoto(ndb.Model):
     eventKey = ndb.KeyProperty(indexed = False)#event added to
@@ -96,7 +97,7 @@ class Photo(ndb.Model):
         #if passed the actual photoObject  
         else:
             photoKey = photoObject.key
-            photoKey.delete()
+            logging.debug("in else")
             
         
         #retrieves the blobinfo object and then deletes the corresponding blob along with the blobinfo object
@@ -105,7 +106,7 @@ class Photo(ndb.Model):
         
         #deletes all pinned references to a photo in all user event objects for an event
         user_event.UserEvent.removeAllPinnedPhotosForPhoto(eventKey = eventKey, photoKey = photoKey.urlsafe())
-    
+        photoKey.delete()
     """
     helper function = bug in sdk, getting blob info by key has to be non transactional -can't be gotten in a transaction
     """
