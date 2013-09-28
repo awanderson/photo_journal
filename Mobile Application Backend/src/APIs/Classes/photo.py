@@ -79,7 +79,7 @@ class Photo(ndb.Model):
     
     """
     removes a photo object and the blobstore object it references (completely deletes a photo basically)
-    can be passed either a photoKeyString or an actual Photo object
+    can be passed either a photoKeyString or an actual Photo object - passing photoKey Does not WORK!!!
     """
     @classmethod
     @ndb.transactional(xg=True, propagation = ndb.TransactionOptions.ALLOWED)
@@ -90,7 +90,8 @@ class Photo(ndb.Model):
         if photoObject == False:
             #gets the photo object from the database and then deletes it
             photoObject = ndb.Key(urlsafe = photoKey).get()
-            ndb.Key(urlsafe = photoKey).delete()#deletes the photo object if it was passed a string
+            photoKeyOb = ndb.Key(urlsafe = photoKey)#deletes the photo object if it was passed a string
+            photoKeyOb.delete()
             
         #if passed the actual photoObject  
         else:
@@ -100,9 +101,7 @@ class Photo(ndb.Model):
         
         #retrieves the blobinfo object and then deletes the corresponding blob along with the blobinfo object
         blobInfoObject = cls.getBlobInfoObject(photoObject.blobKey)
-        blobInfoObject.delete()
-        
-        #deletes the photo object from the user event object for an event
+        cls.deleteBlobWithBlob(blobInfoObject)
         
         #deletes all pinned references to a photo in all user event objects for an event
         user_event.UserEvent.removeAllPinnedPhotosForPhoto(eventKey = eventKey, photoKey = photoKey.urlsafe())
@@ -114,6 +113,11 @@ class Photo(ndb.Model):
     @ndb.non_transactional()
     def getBlobInfoObject(cls, blobKey):
         return blobstore.BlobInfo.get(blobKey)
+    
+    @classmethod
+    @ndb.non_transactional()
+    def deleteBlobWithBlob(cls, blobInfoObject):
+        blobInfoObject.delete()
     
     
     """
