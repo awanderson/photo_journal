@@ -6,6 +6,7 @@ from google.appengine.ext import endpoints
 from Classes import user
 from Classes import tag
 from Classes import user_event
+from Classes import search
 
 
 """
@@ -88,6 +89,7 @@ class TagApi(remote.Service):
     @endpoints.method(tagMessage,callResult, name='Tag.removeTagFromEvent', path='removeTagFromEvent', http_method='POST')
     def removeTagFromEvent(self, request):
         
+        
         #checks for blank fields
         if (request.tagName == "") or (request.eventKey == "") or (request.authToken == "") or (request.userName == ""):
             return callResult(errorMessage = "Missing Required Fields", errorNumber=2)
@@ -103,6 +105,7 @@ class TagApi(remote.Service):
             return callResult(errorNumber = 200)
         else:
             return callResult(errorNumber = 11, errorMessage = "Issued Removing Tag From Event")
+            
     """
     gets all tags from a user auth, returning a list with the tag name, number of events, and a list of the events key
     """

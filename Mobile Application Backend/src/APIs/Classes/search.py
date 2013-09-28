@@ -50,6 +50,15 @@ class DocumentManager():
         cls.index.delete(eventKey)
         return True
     
+    """
+    Removes all the search documents from the index of the search document - only call if reseting database
+    """
+    @classmethod
+    def removeAllDocs(cls):
+        doc_ids = [document.doc_id
+                        for document in cls.index.get_range(ids_only=True)]
+        cls.index.delete(doc_ids)
+    
         
     """
     Edits given event by eventKey
