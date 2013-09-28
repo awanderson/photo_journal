@@ -143,7 +143,7 @@ class Event(ndb.Model):
         #deletes any memories related to the event
         memory.Memory.removeUserMemoriesFromEvent(eventKey = eventKey, userKey = userKey)
         
-        #if eventObject.creatorKey == userKeyObject:
+        #if eventObject.creatorKey == userKeyObject: shouldn't ever delete the search document because no matter who creater is, it will be assigned ot admin if the creater is the person who no longer needs it
             
             #deletes search document
             #search.DocumentManager.removeEventDoc(eventKey = eventKey)       

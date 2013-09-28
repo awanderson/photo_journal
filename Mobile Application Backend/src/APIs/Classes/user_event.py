@@ -97,6 +97,7 @@ class UserEvent(ndb.Model):
         
         return True
     
+    
     """
     Returns a list of all event keys strings for a specific user
     """
