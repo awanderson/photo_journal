@@ -9,7 +9,7 @@ import webapp2
 class PrivacyPolicy(webapp2.RequestHandler):
     
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'text/html'
         self.response.write('This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.This will be a privacy policy.')
 
 
