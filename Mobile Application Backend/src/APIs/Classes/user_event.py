@@ -10,7 +10,6 @@ class UserEvent(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
     updated = ndb.DateTimeProperty(auto_now=True, indexed = False)
     
-    
     """
     adds an event to a user's journal
     """
@@ -212,7 +211,6 @@ class UserEvent(ndb.Model):
     removes a photo from a users pinned photos for a specific event
     """
     @classmethod
-    @ndb.transactional(xg = True, propogation = ndb.TransactionOptions.ALLOWED)
     def removePinnedPhoto(cls, eventKey, userKey, photoKey):
             
         #gets the user's event object

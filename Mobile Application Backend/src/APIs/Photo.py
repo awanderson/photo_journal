@@ -131,12 +131,16 @@ class PhotoApi(remote.Service):
         userKey = user.User.validateUser(request.userName, request.authToken)
         if not userKey:
             return uploadUrlReturn(errorNumber = 1, errorMessage = "User Validation Failed")
-        
+        """
         try:
             user_event.UserEvent.removePinnedPhoto(eventKey = request.eventKey, userKey = userKey, photoKey = request.photoKey)
             return callResult(errorNumber = 200, errorMessage = "Success")
         except:
             return callResult(errorNumber = 3, errorMessage = "Database Transaction Failed")
+        """
+        user_event.UserEvent.removePinnedPhoto(eventKey = request.eventKey, userKey = userKey, photoKey = request.photoKey)
+        return callResult(errorNumber = 200, errorMessage = "Success")
+    
     """
     removes a photo based on the photokey
     """
